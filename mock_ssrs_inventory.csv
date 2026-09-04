@@ -1,0 +1,481 @@
+Shelf,Bin,Medication,Current_Stock
+Shelf 1,Bin 1,Slow Mover C,22
+Shelf 1,Bin 2,Amlodipine 5mg,94
+Shelf 1,Bin 3,Metformin 500mg,76
+Shelf 1,Bin 4,Metformin 500mg,122
+Shelf 1,Bin 5,Aspirin 81mg,161
+Shelf 1,Bin 6,Lisinopril 10mg,141
+Shelf 1,Bin 7,Simvastatin 10mg,65
+Shelf 1,Bin 8,Metformin 500mg,21
+Shelf 1,Bin 9,Ibuprofen 400mg,162
+Shelf 1,Bin 10,Omeprazole 20mg,28
+Shelf 1,Bin 11,Specialty Med B,20
+Shelf 1,Bin 12,Lisinopril 10mg,166
+Shelf 1,Bin 13,Lisinopril 10mg,96
+Shelf 1,Bin 14,Gabapentin 300mg,135
+Shelf 1,Bin 15,Specialty Med B,44
+Shelf 1,Bin 16,Specialty Med A,3
+Shelf 1,Bin 17,Gabapentin 300mg,53
+Shelf 1,Bin 18,Lisinopril 10mg,219
+Shelf 1,Bin 19,Simvastatin 10mg,142
+Shelf 1,Bin 20,Amlodipine 5mg,171
+Shelf 1,Bin 21,Aspirin 81mg,100
+Shelf 1,Bin 22,Ibuprofen 400mg,154
+Shelf 1,Bin 23,Paracetamol 500mg,182
+Shelf 1,Bin 24,Specialty Med A,35
+Shelf 1,Bin 25,Gabapentin 300mg,33
+Shelf 1,Bin 26,Gabapentin 300mg,147
+Shelf 1,Bin 27,Metformin 500mg,164
+Shelf 1,Bin 28,Omeprazole 20mg,33
+Shelf 1,Bin 29,Specialty Med B,24
+Shelf 1,Bin 30,Simvastatin 10mg,22
+Shelf 1,Bin 31,Losartan 50mg,48
+Shelf 1,Bin 32,Aspirin 81mg,169
+Shelf 1,Bin 33,Slow Mover D,5
+Shelf 1,Bin 34,Specialty Med B,15
+Shelf 1,Bin 35,Lisinopril 10mg,138
+Shelf 1,Bin 36,Atorvastatin 20mg,170
+Shelf 1,Bin 37,Specialty Med B,14
+Shelf 1,Bin 38,Atorvastatin 20mg,106
+Shelf 1,Bin 39,Atorvastatin 20mg,139
+Shelf 1,Bin 40,Aspirin 81mg,130
+Shelf 1,Bin 41,Atorvastatin 20mg,139
+Shelf 1,Bin 42,Slow Mover D,39
+Shelf 1,Bin 43,Lisinopril 10mg,43
+Shelf 1,Bin 44,Lisinopril 10mg,81
+Shelf 1,Bin 45,Paracetamol 500mg,42
+Shelf 1,Bin 46,Omeprazole 20mg,133
+Shelf 1,Bin 47,Ibuprofen 400mg,78
+Shelf 1,Bin 48,Atorvastatin 20mg,115
+Shelf 1,Bin 49,Slow Mover C,10
+Shelf 1,Bin 50,Specialty Med B,1
+Shelf 1,Bin 51,Slow Mover C,25
+Shelf 1,Bin 52,Metformin 500mg,48
+Shelf 1,Bin 53,Aspirin 81mg,173
+Shelf 1,Bin 54,Amlodipine 5mg,88
+Shelf 1,Bin 55,Atorvastatin 20mg,45
+Shelf 1,Bin 56,Atorvastatin 20mg,80
+Shelf 1,Bin 57,Paracetamol 500mg,27
+Shelf 1,Bin 58,Amoxicillin 250mg,76
+Shelf 1,Bin 59,Omeprazole 20mg,77
+Shelf 1,Bin 60,Atorvastatin 20mg,78
+Shelf 2,Bin 1,Paracetamol 500mg,80
+Shelf 2,Bin 2,Gabapentin 300mg,12
+Shelf 2,Bin 3,Atorvastatin 20mg,52
+Shelf 2,Bin 4,Paracetamol 500mg,23
+Shelf 2,Bin 5,Gabapentin 300mg,147
+Shelf 2,Bin 6,Simvastatin 10mg,70
+Shelf 2,Bin 7,Slow Mover C,7
+Shelf 2,Bin 8,Aspirin 81mg,89
+Shelf 2,Bin 9,Amoxicillin 250mg,52
+Shelf 2,Bin 10,Simvastatin 10mg,108
+Shelf 2,Bin 11,Losartan 50mg,79
+Shelf 2,Bin 12,Ibuprofen 400mg,17
+Shelf 2,Bin 13,Simvastatin 10mg,86
+Shelf 2,Bin 14,Ibuprofen 400mg,171
+Shelf 2,Bin 15,Metformin 500mg,131
+Shelf 2,Bin 16,Amlodipine 5mg,28
+Shelf 2,Bin 17,Lisinopril 10mg,174
+Shelf 2,Bin 18,Losartan 50mg,170
+Shelf 2,Bin 19,Aspirin 81mg,193
+Shelf 2,Bin 20,Specialty Med A,12
+Shelf 2,Bin 21,Lisinopril 10mg,151
+Shelf 2,Bin 22,Gabapentin 300mg,9
+Shelf 2,Bin 23,Paracetamol 500mg,234
+Shelf 2,Bin 24,Losartan 50mg,203
+Shelf 2,Bin 25,Paracetamol 500mg,55
+Shelf 2,Bin 26,Simvastatin 10mg,125
+Shelf 2,Bin 27,Ibuprofen 400mg,156
+Shelf 2,Bin 28,Paracetamol 500mg,195
+Shelf 2,Bin 29,Metformin 500mg,186
+Shelf 2,Bin 30,Metformin 500mg,159
+Shelf 2,Bin 31,Ibuprofen 400mg,116
+Shelf 2,Bin 32,Simvastatin 10mg,54
+Shelf 2,Bin 33,Omeprazole 20mg,0
+Shelf 2,Bin 34,Slow Mover D,18
+Shelf 2,Bin 35,Paracetamol 500mg,140
+Shelf 2,Bin 36,Amlodipine 5mg,88
+Shelf 2,Bin 37,Gabapentin 300mg,279
+Shelf 2,Bin 38,Omeprazole 20mg,64
+Shelf 2,Bin 39,Gabapentin 300mg,153
+Shelf 2,Bin 40,Gabapentin 300mg,31
+Shelf 2,Bin 41,Losartan 50mg,127
+Shelf 2,Bin 42,Losartan 50mg,128
+Shelf 2,Bin 43,Gabapentin 300mg,122
+Shelf 2,Bin 44,Simvastatin 10mg,134
+Shelf 2,Bin 45,Slow Mover C,15
+Shelf 2,Bin 46,Amlodipine 5mg,0
+Shelf 2,Bin 47,Atorvastatin 20mg,158
+Shelf 2,Bin 48,Gabapentin 300mg,75
+Shelf 2,Bin 49,Metformin 500mg,169
+Shelf 2,Bin 50,Gabapentin 300mg,13
+Shelf 2,Bin 51,Amoxicillin 250mg,172
+Shelf 2,Bin 52,Losartan 50mg,66
+Shelf 2,Bin 53,Amlodipine 5mg,199
+Shelf 2,Bin 54,Specialty Med B,18
+Shelf 2,Bin 55,Amoxicillin 250mg,151
+Shelf 2,Bin 56,Specialty Med B,36
+Shelf 2,Bin 57,Losartan 50mg,166
+Shelf 2,Bin 58,Losartan 50mg,42
+Shelf 2,Bin 59,Slow Mover C,41
+Shelf 2,Bin 60,Metformin 500mg,145
+Shelf 3,Bin 1,Lisinopril 10mg,173
+Shelf 3,Bin 2,Atorvastatin 20mg,64
+Shelf 3,Bin 3,Lisinopril 10mg,88
+Shelf 3,Bin 4,Omeprazole 20mg,211
+Shelf 3,Bin 5,Losartan 50mg,223
+Shelf 3,Bin 6,Ibuprofen 400mg,179
+Shelf 3,Bin 7,Amlodipine 5mg,106
+Shelf 3,Bin 8,Metformin 500mg,29
+Shelf 3,Bin 9,Slow Mover D,9
+Shelf 3,Bin 10,Amlodipine 5mg,23
+Shelf 3,Bin 11,Lisinopril 10mg,19
+Shelf 3,Bin 12,Omeprazole 20mg,76
+Shelf 3,Bin 13,Aspirin 81mg,91
+Shelf 3,Bin 14,Omeprazole 20mg,104
+Shelf 3,Bin 15,Amoxicillin 250mg,257
+Shelf 3,Bin 16,Ibuprofen 400mg,107
+Shelf 3,Bin 17,Losartan 50mg,101
+Shelf 3,Bin 18,Ibuprofen 400mg,246
+Shelf 3,Bin 19,Omeprazole 20mg,96
+Shelf 3,Bin 20,Atorvastatin 20mg,168
+Shelf 3,Bin 21,Gabapentin 300mg,209
+Shelf 3,Bin 22,Metformin 500mg,24
+Shelf 3,Bin 23,Amlodipine 5mg,54
+Shelf 3,Bin 24,Ibuprofen 400mg,18
+Shelf 3,Bin 25,Lisinopril 10mg,50
+Shelf 3,Bin 26,Specialty Med B,15
+Shelf 3,Bin 27,Slow Mover C,18
+Shelf 3,Bin 28,Slow Mover C,5
+Shelf 3,Bin 29,Aspirin 81mg,120
+Shelf 3,Bin 30,Paracetamol 500mg,15
+Shelf 3,Bin 31,Losartan 50mg,126
+Shelf 3,Bin 32,Ibuprofen 400mg,142
+Shelf 3,Bin 33,Slow Mover D,0
+Shelf 3,Bin 34,Simvastatin 10mg,63
+Shelf 3,Bin 35,Simvastatin 10mg,112
+Shelf 3,Bin 36,Amlodipine 5mg,40
+Shelf 3,Bin 37,Slow Mover D,1
+Shelf 3,Bin 38,Specialty Med B,22
+Shelf 3,Bin 39,Lisinopril 10mg,128
+Shelf 3,Bin 40,Metformin 500mg,175
+Shelf 3,Bin 41,Metformin 500mg,230
+Shelf 3,Bin 42,Metformin 500mg,22
+Shelf 3,Bin 43,Aspirin 81mg,152
+Shelf 3,Bin 44,Omeprazole 20mg,181
+Shelf 3,Bin 45,Specialty Med B,21
+Shelf 3,Bin 46,Gabapentin 300mg,73
+Shelf 3,Bin 47,Slow Mover D,23
+Shelf 3,Bin 48,Specialty Med B,1
+Shelf 3,Bin 49,Atorvastatin 20mg,42
+Shelf 3,Bin 50,Specialty Med B,5
+Shelf 3,Bin 51,Paracetamol 500mg,84
+Shelf 3,Bin 52,Metformin 500mg,79
+Shelf 3,Bin 53,Specialty Med B,12
+Shelf 3,Bin 54,Lisinopril 10mg,188
+Shelf 3,Bin 55,Amoxicillin 250mg,62
+Shelf 3,Bin 56,Ibuprofen 400mg,105
+Shelf 3,Bin 57,Paracetamol 500mg,47
+Shelf 3,Bin 58,Specialty Med B,8
+Shelf 3,Bin 59,Specialty Med A,38
+Shelf 3,Bin 60,Lisinopril 10mg,231
+Shelf 4,Bin 1,Specialty Med A,21
+Shelf 4,Bin 2,Lisinopril 10mg,64
+Shelf 4,Bin 3,Losartan 50mg,58
+Shelf 4,Bin 4,Amlodipine 5mg,71
+Shelf 4,Bin 5,Losartan 50mg,213
+Shelf 4,Bin 6,Aspirin 81mg,117
+Shelf 4,Bin 7,Amlodipine 5mg,195
+Shelf 4,Bin 8,Atorvastatin 20mg,70
+Shelf 4,Bin 9,Specialty Med A,21
+Shelf 4,Bin 10,Atorvastatin 20mg,168
+Shelf 4,Bin 11,Simvastatin 10mg,35
+Shelf 4,Bin 12,Simvastatin 10mg,179
+Shelf 4,Bin 13,Atorvastatin 20mg,162
+Shelf 4,Bin 14,Gabapentin 300mg,195
+Shelf 4,Bin 15,Simvastatin 10mg,104
+Shelf 4,Bin 16,Losartan 50mg,12
+Shelf 4,Bin 17,Metformin 500mg,179
+Shelf 4,Bin 18,Gabapentin 300mg,149
+Shelf 4,Bin 19,Simvastatin 10mg,245
+Shelf 4,Bin 20,Metformin 500mg,86
+Shelf 4,Bin 21,Amoxicillin 250mg,100
+Shelf 4,Bin 22,Specialty Med A,33
+Shelf 4,Bin 23,Metformin 500mg,205
+Shelf 4,Bin 24,Amlodipine 5mg,109
+Shelf 4,Bin 25,Atorvastatin 20mg,124
+Shelf 4,Bin 26,Losartan 50mg,119
+Shelf 4,Bin 27,Amoxicillin 250mg,87
+Shelf 4,Bin 28,Paracetamol 500mg,158
+Shelf 4,Bin 29,Amoxicillin 250mg,88
+Shelf 4,Bin 30,Losartan 50mg,123
+Shelf 4,Bin 31,Specialty Med A,7
+Shelf 4,Bin 32,Metformin 500mg,39
+Shelf 4,Bin 33,Specialty Med B,26
+Shelf 4,Bin 34,Specialty Med B,4
+Shelf 4,Bin 35,Amlodipine 5mg,87
+Shelf 4,Bin 36,Metformin 500mg,21
+Shelf 4,Bin 37,Lisinopril 10mg,9
+Shelf 4,Bin 38,Simvastatin 10mg,225
+Shelf 4,Bin 39,Slow Mover D,7
+Shelf 4,Bin 40,Atorvastatin 20mg,88
+Shelf 4,Bin 41,Gabapentin 300mg,181
+Shelf 4,Bin 42,Amlodipine 5mg,1
+Shelf 4,Bin 43,Metformin 500mg,67
+Shelf 4,Bin 44,Losartan 50mg,42
+Shelf 4,Bin 45,Atorvastatin 20mg,128
+Shelf 4,Bin 46,Paracetamol 500mg,122
+Shelf 4,Bin 47,Slow Mover C,43
+Shelf 4,Bin 48,Gabapentin 300mg,82
+Shelf 4,Bin 49,Metformin 500mg,209
+Shelf 4,Bin 50,Specialty Med B,11
+Shelf 4,Bin 51,Omeprazole 20mg,65
+Shelf 4,Bin 52,Omeprazole 20mg,52
+Shelf 4,Bin 53,Gabapentin 300mg,59
+Shelf 4,Bin 54,Omeprazole 20mg,52
+Shelf 4,Bin 55,Atorvastatin 20mg,17
+Shelf 4,Bin 56,Aspirin 81mg,29
+Shelf 4,Bin 57,Slow Mover C,10
+Shelf 4,Bin 58,Simvastatin 10mg,112
+Shelf 4,Bin 59,Amlodipine 5mg,5
+Shelf 4,Bin 60,Metformin 500mg,127
+Shelf 5,Bin 1,Gabapentin 300mg,23
+Shelf 5,Bin 2,Omeprazole 20mg,49
+Shelf 5,Bin 3,Lisinopril 10mg,101
+Shelf 5,Bin 4,Lisinopril 10mg,225
+Shelf 5,Bin 5,Slow Mover C,5
+Shelf 5,Bin 6,Gabapentin 300mg,228
+Shelf 5,Bin 7,Omeprazole 20mg,85
+Shelf 5,Bin 8,Simvastatin 10mg,111
+Shelf 5,Bin 9,Simvastatin 10mg,97
+Shelf 5,Bin 10,Omeprazole 20mg,10
+Shelf 5,Bin 11,Aspirin 81mg,84
+Shelf 5,Bin 12,Omeprazole 20mg,17
+Shelf 5,Bin 13,Gabapentin 300mg,206
+Shelf 5,Bin 14,Slow Mover D,13
+Shelf 5,Bin 15,Lisinopril 10mg,40
+Shelf 5,Bin 16,Lisinopril 10mg,124
+Shelf 5,Bin 17,Amoxicillin 250mg,103
+Shelf 5,Bin 18,Paracetamol 500mg,6
+Shelf 5,Bin 19,Ibuprofen 400mg,87
+Shelf 5,Bin 20,Slow Mover C,33
+Shelf 5,Bin 21,Metformin 500mg,75
+Shelf 5,Bin 22,Specialty Med B,7
+Shelf 5,Bin 23,Slow Mover D,1
+Shelf 5,Bin 24,Gabapentin 300mg,196
+Shelf 5,Bin 25,Metformin 500mg,159
+Shelf 5,Bin 26,Losartan 50mg,49
+Shelf 5,Bin 27,Ibuprofen 400mg,114
+Shelf 5,Bin 28,Amoxicillin 250mg,15
+Shelf 5,Bin 29,Lisinopril 10mg,217
+Shelf 5,Bin 30,Paracetamol 500mg,42
+Shelf 5,Bin 31,Metformin 500mg,73
+Shelf 5,Bin 32,Metformin 500mg,30
+Shelf 5,Bin 33,Lisinopril 10mg,4
+Shelf 5,Bin 34,Aspirin 81mg,50
+Shelf 5,Bin 35,Simvastatin 10mg,119
+Shelf 5,Bin 36,Gabapentin 300mg,13
+Shelf 5,Bin 37,Paracetamol 500mg,205
+Shelf 5,Bin 38,Slow Mover D,7
+Shelf 5,Bin 39,Amlodipine 5mg,28
+Shelf 5,Bin 40,Lisinopril 10mg,188
+Shelf 5,Bin 41,Slow Mover C,10
+Shelf 5,Bin 42,Paracetamol 500mg,107
+Shelf 5,Bin 43,Slow Mover C,16
+Shelf 5,Bin 44,Specialty Med B,4
+Shelf 5,Bin 45,Metformin 500mg,27
+Shelf 5,Bin 46,Ibuprofen 400mg,75
+Shelf 5,Bin 47,Metformin 500mg,56
+Shelf 5,Bin 48,Omeprazole 20mg,53
+Shelf 5,Bin 49,Paracetamol 500mg,7
+Shelf 5,Bin 50,Ibuprofen 400mg,113
+Shelf 5,Bin 51,Losartan 50mg,37
+Shelf 5,Bin 52,Atorvastatin 20mg,4
+Shelf 5,Bin 53,Aspirin 81mg,256
+Shelf 5,Bin 54,Lisinopril 10mg,75
+Shelf 5,Bin 55,Ibuprofen 400mg,91
+Shelf 5,Bin 56,Slow Mover D,24
+Shelf 5,Bin 57,Simvastatin 10mg,154
+Shelf 5,Bin 58,Metformin 500mg,27
+Shelf 5,Bin 59,Lisinopril 10mg,105
+Shelf 5,Bin 60,Simvastatin 10mg,43
+Shelf 6,Bin 1,Specialty Med B,12
+Shelf 6,Bin 2,Gabapentin 300mg,145
+Shelf 6,Bin 3,Lisinopril 10mg,184
+Shelf 6,Bin 4,Gabapentin 300mg,14
+Shelf 6,Bin 5,Ibuprofen 400mg,111
+Shelf 6,Bin 6,Losartan 50mg,47
+Shelf 6,Bin 7,Specialty Med B,29
+Shelf 6,Bin 8,Specialty Med A,12
+Shelf 6,Bin 9,Atorvastatin 20mg,164
+Shelf 6,Bin 10,Simvastatin 10mg,211
+Shelf 6,Bin 11,Metformin 500mg,111
+Shelf 6,Bin 12,Simvastatin 10mg,123
+Shelf 6,Bin 13,Slow Mover D,5
+Shelf 6,Bin 14,Atorvastatin 20mg,46
+Shelf 6,Bin 15,Gabapentin 300mg,1
+Shelf 6,Bin 16,Simvastatin 10mg,99
+Shelf 6,Bin 17,Amlodipine 5mg,162
+Shelf 6,Bin 18,Specialty Med A,7
+Shelf 6,Bin 19,Losartan 50mg,112
+Shelf 6,Bin 20,Metformin 500mg,8
+Shelf 6,Bin 21,Simvastatin 10mg,138
+Shelf 6,Bin 22,Losartan 50mg,0
+Shelf 6,Bin 23,Specialty Med A,12
+Shelf 6,Bin 24,Gabapentin 300mg,102
+Shelf 6,Bin 25,Slow Mover D,23
+Shelf 6,Bin 26,Gabapentin 300mg,94
+Shelf 6,Bin 27,Omeprazole 20mg,92
+Shelf 6,Bin 28,Amlodipine 5mg,137
+Shelf 6,Bin 29,Ibuprofen 400mg,84
+Shelf 6,Bin 30,Specialty Med B,36
+Shelf 6,Bin 31,Metformin 500mg,122
+Shelf 6,Bin 32,Aspirin 81mg,20
+Shelf 6,Bin 33,Specialty Med B,45
+Shelf 6,Bin 34,Amoxicillin 250mg,27
+Shelf 6,Bin 35,Paracetamol 500mg,103
+Shelf 6,Bin 36,Slow Mover C,19
+Shelf 6,Bin 37,Lisinopril 10mg,27
+Shelf 6,Bin 38,Slow Mover C,17
+Shelf 6,Bin 39,Metformin 500mg,38
+Shelf 6,Bin 40,Atorvastatin 20mg,69
+Shelf 6,Bin 41,Simvastatin 10mg,35
+Shelf 6,Bin 42,Simvastatin 10mg,179
+Shelf 6,Bin 43,Slow Mover D,36
+Shelf 6,Bin 44,Slow Mover C,8
+Shelf 6,Bin 45,Paracetamol 500mg,4
+Shelf 6,Bin 46,Atorvastatin 20mg,157
+Shelf 6,Bin 47,Lisinopril 10mg,102
+Shelf 6,Bin 48,Slow Mover C,0
+Shelf 6,Bin 49,Amlodipine 5mg,182
+Shelf 6,Bin 50,Amlodipine 5mg,96
+Shelf 6,Bin 51,Ibuprofen 400mg,97
+Shelf 6,Bin 52,Atorvastatin 20mg,17
+Shelf 6,Bin 53,Paracetamol 500mg,77
+Shelf 6,Bin 54,Aspirin 81mg,115
+Shelf 6,Bin 55,Slow Mover D,15
+Shelf 6,Bin 56,Simvastatin 10mg,37
+Shelf 6,Bin 57,Omeprazole 20mg,45
+Shelf 6,Bin 58,Paracetamol 500mg,42
+Shelf 6,Bin 59,Amlodipine 5mg,95
+Shelf 6,Bin 60,Slow Mover C,3
+Shelf 7,Bin 1,Slow Mover C,4
+Shelf 7,Bin 2,Aspirin 81mg,21
+Shelf 7,Bin 3,Slow Mover C,26
+Shelf 7,Bin 4,Gabapentin 300mg,101
+Shelf 7,Bin 5,Specialty Med A,25
+Shelf 7,Bin 6,Losartan 50mg,63
+Shelf 7,Bin 7,Aspirin 81mg,106
+Shelf 7,Bin 8,Atorvastatin 20mg,23
+Shelf 7,Bin 9,Ibuprofen 400mg,44
+Shelf 7,Bin 10,Aspirin 81mg,14
+Shelf 7,Bin 11,Simvastatin 10mg,34
+Shelf 7,Bin 12,Slow Mover C,7
+Shelf 7,Bin 13,Losartan 50mg,22
+Shelf 7,Bin 14,Simvastatin 10mg,166
+Shelf 7,Bin 15,Omeprazole 20mg,51
+Shelf 7,Bin 16,Amoxicillin 250mg,103
+Shelf 7,Bin 17,Losartan 50mg,10
+Shelf 7,Bin 18,Metformin 500mg,94
+Shelf 7,Bin 19,Specialty Med A,32
+Shelf 7,Bin 20,Specialty Med B,25
+Shelf 7,Bin 21,Specialty Med A,0
+Shelf 7,Bin 22,Paracetamol 500mg,69
+Shelf 7,Bin 23,Atorvastatin 20mg,126
+Shelf 7,Bin 24,Amlodipine 5mg,27
+Shelf 7,Bin 25,Lisinopril 10mg,169
+Shelf 7,Bin 26,Ibuprofen 400mg,69
+Shelf 7,Bin 27,Specialty Med A,5
+Shelf 7,Bin 28,Ibuprofen 400mg,111
+Shelf 7,Bin 29,Lisinopril 10mg,32
+Shelf 7,Bin 30,Slow Mover C,32
+Shelf 7,Bin 31,Simvastatin 10mg,158
+Shelf 7,Bin 32,Paracetamol 500mg,126
+Shelf 7,Bin 33,Gabapentin 300mg,129
+Shelf 7,Bin 34,Ibuprofen 400mg,146
+Shelf 7,Bin 35,Slow Mover D,31
+Shelf 7,Bin 36,Paracetamol 500mg,0
+Shelf 7,Bin 37,Slow Mover D,39
+Shelf 7,Bin 38,Specialty Med B,7
+Shelf 7,Bin 39,Ibuprofen 400mg,237
+Shelf 7,Bin 40,Amoxicillin 250mg,147
+Shelf 7,Bin 41,Amlodipine 5mg,48
+Shelf 7,Bin 42,Omeprazole 20mg,169
+Shelf 7,Bin 43,Losartan 50mg,119
+Shelf 7,Bin 44,Metformin 500mg,24
+Shelf 7,Bin 45,Losartan 50mg,32
+Shelf 7,Bin 46,Omeprazole 20mg,59
+Shelf 7,Bin 47,Losartan 50mg,115
+Shelf 7,Bin 48,Atorvastatin 20mg,104
+Shelf 7,Bin 49,Specialty Med B,12
+Shelf 7,Bin 50,Specialty Med A,33
+Shelf 7,Bin 51,Lisinopril 10mg,99
+Shelf 7,Bin 52,Amoxicillin 250mg,150
+Shelf 7,Bin 53,Omeprazole 20mg,114
+Shelf 7,Bin 54,Ibuprofen 400mg,77
+Shelf 7,Bin 55,Metformin 500mg,68
+Shelf 7,Bin 56,Slow Mover D,5
+Shelf 7,Bin 57,Aspirin 81mg,75
+Shelf 7,Bin 58,Metformin 500mg,89
+Shelf 7,Bin 59,Gabapentin 300mg,18
+Shelf 7,Bin 60,Paracetamol 500mg,25
+Shelf 8,Bin 1,Gabapentin 300mg,148
+Shelf 8,Bin 2,Aspirin 81mg,111
+Shelf 8,Bin 3,Slow Mover D,28
+Shelf 8,Bin 4,Simvastatin 10mg,141
+Shelf 8,Bin 5,Omeprazole 20mg,86
+Shelf 8,Bin 6,Specialty Med B,10
+Shelf 8,Bin 7,Specialty Med A,6
+Shelf 8,Bin 8,Simvastatin 10mg,223
+Shelf 8,Bin 9,Specialty Med B,32
+Shelf 8,Bin 10,Lisinopril 10mg,25
+Shelf 8,Bin 11,Ibuprofen 400mg,59
+Shelf 8,Bin 12,Amoxicillin 250mg,193
+Shelf 8,Bin 13,Gabapentin 300mg,43
+Shelf 8,Bin 14,Lisinopril 10mg,85
+Shelf 8,Bin 15,Amlodipine 5mg,43
+Shelf 8,Bin 16,Metformin 500mg,57
+Shelf 8,Bin 17,Amoxicillin 250mg,56
+Shelf 8,Bin 18,Ibuprofen 400mg,121
+Shelf 8,Bin 19,Omeprazole 20mg,108
+Shelf 8,Bin 20,Metformin 500mg,62
+Shelf 8,Bin 21,Amoxicillin 250mg,55
+Shelf 8,Bin 22,Losartan 50mg,83
+Shelf 8,Bin 23,Paracetamol 500mg,32
+Shelf 8,Bin 24,Amoxicillin 250mg,40
+Shelf 8,Bin 25,Slow Mover D,2
+Shelf 8,Bin 26,Lisinopril 10mg,100
+Shelf 8,Bin 27,Slow Mover C,17
+Shelf 8,Bin 28,Omeprazole 20mg,9
+Shelf 8,Bin 29,Ibuprofen 400mg,225
+Shelf 8,Bin 30,Ibuprofen 400mg,54
+Shelf 8,Bin 31,Specialty Med A,17
+Shelf 8,Bin 32,Amlodipine 5mg,0
+Shelf 8,Bin 33,Amlodipine 5mg,97
+Shelf 8,Bin 34,Specialty Med B,14
+Shelf 8,Bin 35,Atorvastatin 20mg,55
+Shelf 8,Bin 36,Omeprazole 20mg,143
+Shelf 8,Bin 37,Paracetamol 500mg,142
+Shelf 8,Bin 38,Amoxicillin 250mg,149
+Shelf 8,Bin 39,Specialty Med A,12
+Shelf 8,Bin 40,Slow Mover D,15
+Shelf 8,Bin 41,Paracetamol 500mg,4
+Shelf 8,Bin 42,Simvastatin 10mg,103
+Shelf 8,Bin 43,Paracetamol 500mg,173
+Shelf 8,Bin 44,Simvastatin 10mg,47
+Shelf 8,Bin 45,Losartan 50mg,29
+Shelf 8,Bin 46,Ibuprofen 400mg,99
+Shelf 8,Bin 47,Paracetamol 500mg,77
+Shelf 8,Bin 48,Omeprazole 20mg,93
+Shelf 8,Bin 49,Gabapentin 300mg,98
+Shelf 8,Bin 50,Paracetamol 500mg,160
+Shelf 8,Bin 51,Slow Mover C,0
+Shelf 8,Bin 52,Aspirin 81mg,11
+Shelf 8,Bin 53,Slow Mover D,21
+Shelf 8,Bin 54,Omeprazole 20mg,52
+Shelf 8,Bin 55,Slow Mover C,15
+Shelf 8,Bin 56,Amoxicillin 250mg,52
+Shelf 8,Bin 57,Gabapentin 300mg,84
+Shelf 8,Bin 58,Paracetamol 500mg,97
+Shelf 8,Bin 59,Metformin 500mg,103
+Shelf 8,Bin 60,Slow Mover D,17

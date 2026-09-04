@@ -1,0 +1,24 @@
+# Streamlit secrets (CRITICAL: Never commit database passwords or API keys)
+.streamlit/secrets.toml
+
+# Python virtual environments & cache
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.venv/
+
+# Environment variables
+.env
+
+# IDEs and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Ignore any temporary raw data reports (optional, but good for healthcare data safety)
+# Keep master configs, but ignore anything with "report" or "upload" in the name if saved locally
+*report*.csv
+*upload*.csv
