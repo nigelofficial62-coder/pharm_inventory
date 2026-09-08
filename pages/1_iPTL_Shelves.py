@@ -159,9 +159,12 @@ with header_col2:
                     ssrs_df.columns = [str(c).upper().replace('_', ' ').replace('1', '').strip() for c in ssrs_df.columns]
                     col_mapping = {}
                     for c in ssrs_df.columns:
-                        if c in ['ARTICLE NAME', 'ITEM NAME']: col_mapping[c] = 'Medication'
-                        if c in ['TOTAL BALANCE', 'BALANCE QTY', 'TEXTBOX36']: col_mapping[c] = 'Current_Stock'
+                        if c in ['ARTICLE NAME', 'ITEM NAME'] and 'Medication' not in col_mapping.values(): 
+                            col_mapping[c] = 'Medication'
+                        if c in ['TOTAL BALANCE', 'BALANCE QTY', 'TEXTBOX36'] and 'Current_Stock' not in col_mapping.values(): 
+                            col_mapping[c] = 'Current_Stock'
                     ssrs_df = ssrs_df.rename(columns=col_mapping)
+                    ssrs_df = ssrs_df.loc[:, ~ssrs_df.columns.duplicated()]
                     
                     if 'Medication' in ssrs_df.columns:
                         ssrs_df = ssrs_df.dropna(subset=['Medication'])
@@ -189,9 +192,12 @@ with header_col2:
                         ssrs_df.columns = [str(c).upper().replace('_', ' ').replace('1', '').strip() for c in ssrs_df.columns]
                         col_mapping = {}
                         for c in ssrs_df.columns:
-                            if c in ['ARTICLE NAME', 'ITEM NAME']: col_mapping[c] = 'Medication'
-                            if c in ['TOTAL BALANCE', 'BALANCE QTY', 'TEXTBOX36']: col_mapping[c] = 'Current_Stock'
+                            if c in ['ARTICLE NAME', 'ITEM NAME'] and 'Medication' not in col_mapping.values(): 
+                                col_mapping[c] = 'Medication'
+                            if c in ['TOTAL BALANCE', 'BALANCE QTY', 'TEXTBOX36'] and 'Current_Stock' not in col_mapping.values(): 
+                                col_mapping[c] = 'Current_Stock'
                         ssrs_df = ssrs_df.rename(columns=col_mapping)
+                        ssrs_df = ssrs_df.loc[:, ~ssrs_df.columns.duplicated()]
                         
                         if 'Medication' not in ssrs_df.columns:
                             raise KeyError("The column 'ARTICLE NAME' was not found. Please ensure you copied the column headers!")
