@@ -159,7 +159,8 @@ with header_col2:
                 pasted_text = st.text_area("Paste raw CSV content here:", height=150)
                 if st.button("Process Pasted Data", use_container_width=True) and pasted_text:
                     try:
-                        ssrs_df = pd.read_csv(io.StringIO(pasted_text), skiprows=2)
+                        # Use sep=None, engine='python' to automatically detect if pasted from Excel (Tabs) or Notepad (Commas)
+                        ssrs_df = pd.read_csv(io.StringIO(pasted_text), skiprows=2, sep=None, engine='python')
                         ssrs_df.columns = [str(c).strip() for c in ssrs_df.columns]
                         ssrs_df = ssrs_df.rename(columns={'ARTICLE NAME': 'Medication', 'TOTAL BALANCE': 'Current_Stock'})
                         ssrs_df = ssrs_df.dropna(subset=['Medication'])

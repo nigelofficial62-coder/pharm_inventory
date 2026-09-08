@@ -81,7 +81,8 @@ with header_col2:
                 pasted_text = st.text_area("Paste raw CSV content here:", height=150)
                 if st.button("Process Pasted Data", use_container_width=True) and pasted_text:
                     try:
-                        rowa_df = pd.read_csv(io.StringIO(pasted_text))
+                        # Use sep=None, engine='python' to automatically detect if pasted from Excel (Tabs) or Notepad (Commas)
+                        rowa_df = pd.read_csv(io.StringIO(pasted_text), sep=None, engine='python')
                         st.session_state['rowa_data'] = rowa_df
                         st.session_state['rowa_uploaded_name'] = "pasted_data"
                         st.rerun()
