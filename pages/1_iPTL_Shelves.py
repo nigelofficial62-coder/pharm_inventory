@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import io
 
 st.set_page_config(layout="wide", page_title="SENTINEL")
 
@@ -145,24 +146,43 @@ with header_col2:
             with tab_up:
                 uploaded_file = st.file_uploader("Upload iPTL SSRS Report", type=["csv"])
                 if uploaded_file and st.session_state.get('iptl_uploaded_name') != uploaded_file.name:
-                    ssrs_df = pd.read_csv(uploaded_file, skiprows=2)
+                    content = uploaded_file.getvalue().decode('utf-8')
+                    lines = content.split('\n')
+                    skip_idx = 0
+                    for i, line in enumerate(lines[:15]):
+                        if 'ARTICLE NAME' in line.upper() or 'TOTAL BALANCE' in line.upper():
+                            skip_idx = i
+                            break
+                    ssrs_df = pd.read_csv(io.StringIO(content), skiprows=skip_idx)
                     ssrs_df.columns = [str(c).strip() for c in ssrs_df.columns]
                     ssrs_df = ssrs_df.rename(columns={'ARTICLE NAME': 'Medication', 'TOTAL BALANCE': 'Current_Stock'})
-                    ssrs_df = ssrs_df.dropna(subset=['Medication'])
-                    ssrs_df = ssrs_df.drop_duplicates(subset=['Medication'])
-                    st.session_state['iptl_data'] = ssrs_df
-                    st.session_state['iptl_uploaded_name'] = uploaded_file.name
-                    st.rerun()
+                    if 'Medication' in ssrs_df.columns:
+                        ssrs_df = ssrs_df.dropna(subset=['Medication'])
+                        ssrs_df = ssrs_df.drop_duplicates(subset=['Medication'])
+                        st.session_state['iptl_data'] = ssrs_df
+                        st.session_state['iptl_uploaded_name'] = uploaded_file.name
+                        st.rerun()
+                    else:
+                        st.error("Could not find 'ARTICLE NAME' column in the uploaded file.")
                     
             with tab_paste:
-                import io
                 pasted_text = st.text_area("Paste raw CSV content here:", height=150)
                 if st.button("Process Pasted Data", use_container_width=True) and pasted_text:
                     try:
+                        lines = pasted_text.split('\n')
+                        skip_idx = 0
+                        for i, line in enumerate(lines[:15]):
+                            if 'ARTICLE NAME' in line.upper() or 'TOTAL BALANCE' in line.upper():
+                                skip_idx = i
+                                break
                         # Use sep=None, engine='python' to automatically detect if pasted from Excel (Tabs) or Notepad (Commas)
-                        ssrs_df = pd.read_csv(io.StringIO(pasted_text), skiprows=2, sep=None, engine='python')
+                        ssrs_df = pd.read_csv(io.StringIO(pasted_text), skiprows=skip_idx, sep=None, engine='python')
                         ssrs_df.columns = [str(c).strip() for c in ssrs_df.columns]
                         ssrs_df = ssrs_df.rename(columns={'ARTICLE NAME': 'Medication', 'TOTAL BALANCE': 'Current_Stock'})
+                        
+                        if 'Medication' not in ssrs_df.columns:
+                            raise KeyError("The column 'ARTICLE NAME' was not found. Please ensure you copied the column headers!")
+                            
                         ssrs_df = ssrs_df.dropna(subset=['Medication'])
                         ssrs_df = ssrs_df.drop_duplicates(subset=['Medication'])
                         st.session_state['iptl_data'] = ssrs_df

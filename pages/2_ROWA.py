@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 import plotly.express as px
+import io
 
 st.set_page_config(layout="wide", page_title="ROWA | Sentinel")
 
