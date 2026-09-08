@@ -242,22 +242,27 @@ if 'iptl_data' in st.session_state:
         df = pd.merge(master_df, ssrs_df[['Medication', 'Current_Stock']], on='Medication', how='left')
         df['Current_Stock'] = df['Current_Stock'].fillna(0)
         
-        if '3_Day_Consumption' in df.columns:
+        if 'P95_DAILY_DEMAND' in df.columns:
+            df['Target_Level'] = pd.to_numeric(df['P95_DAILY_DEMAND'], errors='coerce')
+        elif '3_Day_Consumption' in df.columns:
             df['Target_Level'] = pd.to_numeric(df['3_Day_Consumption'], errors='coerce')
         elif 'Max_Capacity' in df.columns:
             df['Target_Level'] = pd.to_numeric(df['Max_Capacity'], errors='coerce')
         else:
             df['Target_Level'] = pd.Series(100, index=df.index)
             
+        if 'VELOCITY_CATEGORY' in df.columns:
+            df['Type'] = df['VELOCITY_CATEGORY']
+            
         df['Target_Level'] = df['Target_Level'].fillna(100)
         df['Health_Pct'] = df['Current_Stock'] / df['Target_Level']
         
         def calculate_status(row):
-            if pd.isna(row['Type']): return 'grey'
+            if pd.isna(row.get('Type')): return 'grey'
             if row.get('Is_Overflow', False): return 'overflow'
             pct = row['Health_Pct']
-            if pct > 0.66: return 'green'
-            elif pct >= 0.33: return 'yellow'
+            if pct >= 1.0: return 'green'
+            elif pct >= 0.5: return 'yellow'
             else: return 'red'
                 
         df['Status'] = df.apply(calculate_status, axis=1)
@@ -285,21 +290,21 @@ if 'iptl_data' in st.session_state:
         with m1:
             st.markdown(f"""
             <div class="metric-card" style="border-top: 4px solid #A1CCA6;">
-                <div class="metric-title">Healthy (>66%)</div>
+                <div class="metric-title">Healthy (≥100%)</div>
                 <div style="font-size: 2.5rem; font-weight: 800; color: #A1CCA6;">{healthy_bins}</div>
             </div>
             """, unsafe_allow_html=True)
         with m2:
             st.markdown(f"""
             <div class="metric-card" style="border-top: 4px solid #F9D779;">
-                <div class="metric-title">Warning (33-66%)</div>
+                <div class="metric-title">Warning (50-100%)</div>
                 <div style="font-size: 2.5rem; font-weight: 800; color: #d4a82c;">{warning_bins}</div>
             </div>
             """, unsafe_allow_html=True)
         with m3:
             st.markdown(f"""
             <div class="metric-card" style="border-top: 4px solid #FCA47C;">
-                <div class="metric-title">Critical (<33%)</div>
+                <div class="metric-title">Critical (<50%)</div>
                 <div style="font-size: 2.5rem; font-weight: 800; color: #FCA47C;">{critical_bins}</div>
             </div>
             """, unsafe_allow_html=True)
@@ -312,7 +317,7 @@ else:
     st.info("Awaiting Data. Please use the Manage Data menu above to upload an SSRS report to activate the shelves.")
 
 # --- TABS ---
-tab1, tab2, tab3 = st.tabs(["Shelf Overview", "Buffer Top-Up List", "Main Store Reorder List"])
+tab1, tab2 = st.tabs(["Shelf Overview", "Restock Action List (By Velocity)"])
 
 with tab1:
     shelves_list = [f"Shelf {i}" for i in range(1, 9)]
@@ -367,18 +372,20 @@ with tab1:
 
 with tab2:
     if df is not None:
-        st.markdown("<h3 style='color:#097C87;'>Internal Action: Buffer Top-Up</h3>", unsafe_allow_html=True)
-        st.info("Workflow: These medications have Buffer Stock. Pull from the physical buffer to top up bins that are Yellow or Red.")
-        top_up_df = df[(df['Type'] == 'Buffer') & (df['Status'].isin(['yellow', 'red']))]
-        st.dataframe(top_up_df[['Shelf', 'Bin', 'Medication', 'Current_Stock', 'Target_Level', 'Status']], use_container_width=True, hide_index=True)
-    else:
-        st.info("Awaiting data upload.")
-
-with tab3:
-    if df is not None:
-        st.markdown("<h3 style='color:#097C87;'>External Action: Main Store Reorder</h3>", unsafe_allow_html=True)
-        st.error("Workflow: These medications are Non-Buffer and are running low (Yellow/Red). Order directly from the Main Pharmacy.")
-        reorder_df = df[(df['Type'] == 'Non-Buffer') & (df['Status'].isin(['yellow', 'red']))]
-        st.dataframe(reorder_df[['Shelf', 'Bin', 'Medication', 'Current_Stock', 'Target_Level', 'Status']], use_container_width=True, hide_index=True)
+        st.markdown("<h3 style='color:#097C87;'>Restock Action List</h3>", unsafe_allow_html=True)
+        st.info("Workflow: These medications have fallen below 100% of their P95 Daily Demand and require topping up.")
+        
+        # Velocity Toggle
+        vel_filter = st.radio("Filter by Velocity Category:", ["All", "Fast-Moving", "Medium-Moving", "Slow-Moving"], horizontal=True)
+        
+        action_df = df[df['Status'].isin(['yellow', 'red'])].copy()
+        
+        if vel_filter != "All":
+            action_df = action_df[action_df['Type'] == vel_filter]
+            
+        # Display the formatted dataframe
+        display_df = action_df[['Shelf', 'Bin', 'Medication', 'Current_Stock', 'Target_Level', 'Type', 'Status']]
+        display_df = display_df.rename(columns={'Target_Level': 'P95_Daily_Demand', 'Type': 'Velocity_Category'})
+        st.dataframe(display_df, use_container_width=True, hide_index=True)
     else:
         st.info("Awaiting data upload.")
