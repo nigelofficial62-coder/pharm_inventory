@@ -139,16 +139,36 @@ with header_col2:
     st.write("") 
     if 'iptl_data' not in st.session_state:
         with st.popover("⚙️ Manage Data", use_container_width=True):
-            uploaded_file = st.file_uploader("Upload iPTL SSRS Report", type=["csv"])
-            if uploaded_file and st.session_state.get('iptl_uploaded_name') != uploaded_file.name:
-                ssrs_df = pd.read_csv(uploaded_file, skiprows=2)
-                ssrs_df.columns = [str(c).strip() for c in ssrs_df.columns]
-                ssrs_df = ssrs_df.rename(columns={'ARTICLE NAME': 'Medication', 'TOTAL BALANCE': 'Current_Stock'})
-                ssrs_df = ssrs_df.dropna(subset=['Medication'])
-                ssrs_df = ssrs_df.drop_duplicates(subset=['Medication'])
-                st.session_state['iptl_data'] = ssrs_df
-                st.session_state['iptl_uploaded_name'] = uploaded_file.name
-                st.rerun()
+            st.caption("Corporate network blocking uploads? Use the Paste tab.")
+            tab_up, tab_paste = st.tabs(["Upload File", "Paste CSV Text"])
+            
+            with tab_up:
+                uploaded_file = st.file_uploader("Upload iPTL SSRS Report", type=["csv"])
+                if uploaded_file and st.session_state.get('iptl_uploaded_name') != uploaded_file.name:
+                    ssrs_df = pd.read_csv(uploaded_file, skiprows=2)
+                    ssrs_df.columns = [str(c).strip() for c in ssrs_df.columns]
+                    ssrs_df = ssrs_df.rename(columns={'ARTICLE NAME': 'Medication', 'TOTAL BALANCE': 'Current_Stock'})
+                    ssrs_df = ssrs_df.dropna(subset=['Medication'])
+                    ssrs_df = ssrs_df.drop_duplicates(subset=['Medication'])
+                    st.session_state['iptl_data'] = ssrs_df
+                    st.session_state['iptl_uploaded_name'] = uploaded_file.name
+                    st.rerun()
+                    
+            with tab_paste:
+                import io
+                pasted_text = st.text_area("Paste raw CSV content here:", height=150)
+                if st.button("Process Pasted Data", use_container_width=True) and pasted_text:
+                    try:
+                        ssrs_df = pd.read_csv(io.StringIO(pasted_text), skiprows=2)
+                        ssrs_df.columns = [str(c).strip() for c in ssrs_df.columns]
+                        ssrs_df = ssrs_df.rename(columns={'ARTICLE NAME': 'Medication', 'TOTAL BALANCE': 'Current_Stock'})
+                        ssrs_df = ssrs_df.dropna(subset=['Medication'])
+                        ssrs_df = ssrs_df.drop_duplicates(subset=['Medication'])
+                        st.session_state['iptl_data'] = ssrs_df
+                        st.session_state['iptl_uploaded_name'] = "pasted_data"
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Failed to parse pasted data: {e}")
     else:
         if st.button("🔄 Upload New Data", use_container_width=True):
             del st.session_state['iptl_data']
