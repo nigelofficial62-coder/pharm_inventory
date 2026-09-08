@@ -150,12 +150,19 @@ with header_col2:
                     lines = content.split('\n')
                     skip_idx = 0
                     for i, line in enumerate(lines[:15]):
-                        if 'ARTICLE NAME' in line.upper() or 'TOTAL BALANCE' in line.upper():
+                        if 'ARTICLE' in line.upper() or 'BALANCE' in line.upper() or 'TEXTBOX36' in line.upper():
                             skip_idx = i
                             break
                     ssrs_df = pd.read_csv(io.StringIO(content), skiprows=skip_idx)
-                    ssrs_df.columns = [str(c).strip() for c in ssrs_df.columns]
-                    ssrs_df = ssrs_df.rename(columns={'ARTICLE NAME': 'Medication', 'TOTAL BALANCE': 'Current_Stock'})
+                    
+                    # Clean and standardize columns (handles ARTICLE_NAME1, TOTAL_BALANCE, etc.)
+                    ssrs_df.columns = [str(c).upper().replace('_', ' ').replace('1', '').strip() for c in ssrs_df.columns]
+                    col_mapping = {}
+                    for c in ssrs_df.columns:
+                        if c in ['ARTICLE NAME', 'ITEM NAME']: col_mapping[c] = 'Medication'
+                        if c in ['TOTAL BALANCE', 'BALANCE QTY', 'TEXTBOX36']: col_mapping[c] = 'Current_Stock'
+                    ssrs_df = ssrs_df.rename(columns=col_mapping)
+                    
                     if 'Medication' in ssrs_df.columns:
                         ssrs_df = ssrs_df.dropna(subset=['Medication'])
                         ssrs_df = ssrs_df.drop_duplicates(subset=['Medication'])
@@ -163,7 +170,7 @@ with header_col2:
                         st.session_state['iptl_uploaded_name'] = uploaded_file.name
                         st.rerun()
                     else:
-                        st.error("Could not find 'ARTICLE NAME' column in the uploaded file.")
+                        st.error("Could not find an 'ARTICLE NAME' or 'ITEM NAME' column in the uploaded file.")
                     
             with tab_paste:
                 pasted_text = st.text_area("Paste raw CSV content here:", height=150)
@@ -172,13 +179,19 @@ with header_col2:
                         lines = pasted_text.split('\n')
                         skip_idx = 0
                         for i, line in enumerate(lines[:15]):
-                            if 'ARTICLE NAME' in line.upper() or 'TOTAL BALANCE' in line.upper():
+                            if 'ARTICLE' in line.upper() or 'BALANCE' in line.upper() or 'TEXTBOX36' in line.upper():
                                 skip_idx = i
                                 break
                         # Use sep=None, engine='python' to automatically detect if pasted from Excel (Tabs) or Notepad (Commas)
                         ssrs_df = pd.read_csv(io.StringIO(pasted_text), skiprows=skip_idx, sep=None, engine='python')
-                        ssrs_df.columns = [str(c).strip() for c in ssrs_df.columns]
-                        ssrs_df = ssrs_df.rename(columns={'ARTICLE NAME': 'Medication', 'TOTAL BALANCE': 'Current_Stock'})
+                        
+                        # Clean and standardize columns
+                        ssrs_df.columns = [str(c).upper().replace('_', ' ').replace('1', '').strip() for c in ssrs_df.columns]
+                        col_mapping = {}
+                        for c in ssrs_df.columns:
+                            if c in ['ARTICLE NAME', 'ITEM NAME']: col_mapping[c] = 'Medication'
+                            if c in ['TOTAL BALANCE', 'BALANCE QTY', 'TEXTBOX36']: col_mapping[c] = 'Current_Stock'
+                        ssrs_df = ssrs_df.rename(columns=col_mapping)
                         
                         if 'Medication' not in ssrs_df.columns:
                             raise KeyError("The column 'ARTICLE NAME' was not found. Please ensure you copied the column headers!")
