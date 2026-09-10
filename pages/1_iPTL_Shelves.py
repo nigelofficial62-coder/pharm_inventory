@@ -240,7 +240,7 @@ if 'iptl_data' in st.session_state:
                 
         master_df = pd.DataFrame(records)
         df = pd.merge(master_df, ssrs_df[['Medication', 'Current_Stock']], on='Medication', how='left')
-        df['Current_Stock'] = df['Current_Stock'].fillna(0)
+        df['Current_Stock'] = pd.to_numeric(df['Current_Stock'], errors='coerce').fillna(0).astype(int)
         
         if 'P95_DAILY_DEMAND' in df.columns:
             df['Target_Level'] = pd.to_numeric(df['P95_DAILY_DEMAND'], errors='coerce')
