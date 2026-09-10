@@ -127,6 +127,10 @@ if 'rowa_data' in st.session_state:
     df['Max_Target'] = pd.to_numeric(df[par_col], errors='coerce').fillna(0).astype(int)
     
     df['BARCODE'] = df['BARCODE'].fillna('NO')
+    if 'BIN_CODE' in df.columns:
+        df['BIN_CODE'] = df['BIN_CODE'].fillna('N/A')
+    else:
+        df['BIN_CODE'] = 'N/A'
     
     # Calculate Qty to Load against PAR (Max Target)
     df['Qty_To_Load'] = df['Max_Target'] - df['Current_Stock']
@@ -222,7 +226,7 @@ if 'rowa_data' in st.session_state:
         load_df_filtered['Health %'] = load_df_filtered['Current_Stock'] / load_df_filtered['Max_Target']
         load_df_filtered = load_df_filtered.sort_values(by='Health %', ascending=True)
         
-        display_load = load_df_filtered[['Medication', 'BARCODE', 'Current_Stock', 'Max_Target', 'Qty_To_Load', 'Health %']]
+        display_load = load_df_filtered[['Medication', 'BIN_CODE', 'BARCODE', 'Current_Stock', 'Max_Target', 'Qty_To_Load', 'Health %']]
         display_load = display_load.rename(columns={'Max_Target': 'PAR Target'})
         
         with t1_col2:
@@ -260,7 +264,7 @@ if 'rowa_data' in st.session_state:
 
     with tab3:
         st.markdown("<h3 style='color:#097C87; margin-top: 0;'>ROWA Complete Inventory List</h3>", unsafe_allow_html=True)
-        display_all = df[['Medication', 'BARCODE', 'Current_Stock', 'Max_Target', 'Stock_Status', 'Expiry_Status', 'Expiry Date']]
+        display_all = df[['Medication', 'BIN_CODE', 'BARCODE', 'Current_Stock', 'Max_Target', 'Stock_Status', 'Expiry_Status', 'Expiry Date']]
         display_all = display_all.rename(columns={'Max_Target': 'PAR Target'})
         st.dataframe(display_all, use_container_width=True, hide_index=True, height=500)
         

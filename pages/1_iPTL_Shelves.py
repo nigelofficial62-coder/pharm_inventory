@@ -373,7 +373,6 @@ with tab1:
 with tab2:
     if df is not None:
         st.markdown("<h3 style='color:#097C87;'>Restock Action List</h3>", unsafe_allow_html=True)
-        st.info("Workflow: These medications have fallen below 100% of their P95 Daily Demand and require topping up.")
         
         # Velocity Toggle
         vel_filter = st.radio("Filter by Velocity Category:", ["All", "Fast-Moving", "Medium-Moving", "Slow-Moving"], horizontal=True)
