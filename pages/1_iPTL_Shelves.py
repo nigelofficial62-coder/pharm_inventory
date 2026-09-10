@@ -317,7 +317,7 @@ else:
     st.info("Awaiting Data. Please use the Manage Data menu above to upload an SSRS report to activate the shelves.")
 
 # --- TABS ---
-tab1, tab2 = st.tabs(["Shelf Overview", "Restock Action List (By Velocity)"])
+tab1, tab2 = st.tabs(["iPTL Shelves Overview", "iPTL Restock Action List"])
 
 with tab1:
     shelves_list = [f"Shelf {i}" for i in range(1, 9)]
@@ -382,9 +382,21 @@ with tab2:
         if vel_filter != "All":
             action_df = action_df[action_df['Type'] == vel_filter]
             
+        action_df = action_df.sort_values(by='Health_Pct', ascending=True)
+            
         # Display the formatted dataframe
-        display_df = action_df[['Shelf', 'Bin', 'Medication', 'Current_Stock', 'Target_Level', 'Type', 'Status']]
-        display_df = display_df.rename(columns={'Target_Level': 'P95_Daily_Demand', 'Type': 'Velocity_Category'})
-        st.dataframe(display_df, use_container_width=True, hide_index=True)
+        display_df = action_df[['Shelf', 'Bin', 'Medication', 'Current_Stock', 'Target_Level', 'Type', 'Health_Pct']]
+        display_df = display_df.rename(columns={'Target_Level': 'P95_Daily_Demand', 'Type': 'Velocity_Category', 'Health_Pct': 'Health %'})
+        
+        def color_health(val):
+            if val < 0.5:
+                return 'background-color: #FCA47C; color: #1e293b'
+            elif val < 1.0:
+                return 'background-color: #F9D779; color: #1e293b'
+            else:
+                return 'background-color: #A1CCA6; color: #1e293b'
+                
+        styled_df = display_df.style.format({'Health %': '{:.1%}'}).map(color_health, subset=['Health %'])
+        st.dataframe(styled_df, use_container_width=True, hide_index=True)
     else:
         st.info("Awaiting data upload.")
