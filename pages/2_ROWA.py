@@ -61,7 +61,7 @@ st.markdown("""
 # --- HEADER & DATA INGESTION (Right Justified) ---
 header_col1, header_col2 = st.columns([8, 2])
 with header_col1:
-    st.markdown("<h1 class='sentinel-title'>ROWA</h1>", unsafe_allow_html=True)
+    st.markdown("<div class='sentinel-title'>ROWA</div>", unsafe_allow_html=True)
 with header_col2:
     st.write("") # Vertical alignment spacing
     if 'rowa_data' not in st.session_state:

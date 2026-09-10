@@ -277,11 +277,11 @@ if 'iptl_data' in st.session_state:
             background-color: #ffffff;
             border: 1px solid #e2e8f0;
             border-radius: 8px;
-            padding: 20px;
+            padding: 10px 15px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
         }
         .metric-title {
-            color: #64748b; font-size: 0.875rem; font-weight: 600; text-transform: uppercase; margin-bottom: 8px;
+            color: #64748b; font-size: 0.875rem; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;
         }
         </style>
         """, unsafe_allow_html=True)
@@ -291,21 +291,21 @@ if 'iptl_data' in st.session_state:
             st.markdown(f"""
             <div class="metric-card" style="border-top: 4px solid #A1CCA6;">
                 <div class="metric-title">Healthy (≥100%)</div>
-                <div style="font-size: 2.5rem; font-weight: 800; color: #A1CCA6;">{healthy_bins}</div>
+                <div style="font-size: 2.0rem; font-weight: 800; color: #A1CCA6;">{healthy_bins}</div>
             </div>
             """, unsafe_allow_html=True)
         with m2:
             st.markdown(f"""
             <div class="metric-card" style="border-top: 4px solid #F9D779;">
                 <div class="metric-title">Warning (50-100%)</div>
-                <div style="font-size: 2.5rem; font-weight: 800; color: #d4a82c;">{warning_bins}</div>
+                <div style="font-size: 2.0rem; font-weight: 800; color: #d4a82c;">{warning_bins}</div>
             </div>
             """, unsafe_allow_html=True)
         with m3:
             st.markdown(f"""
             <div class="metric-card" style="border-top: 4px solid #FCA47C;">
                 <div class="metric-title">Critical (<50%)</div>
-                <div style="font-size: 2.5rem; font-weight: 800; color: #FCA47C;">{critical_bins}</div>
+                <div style="font-size: 2.0rem; font-weight: 800; color: #FCA47C;">{critical_bins}</div>
             </div>
             """, unsafe_allow_html=True)
             
