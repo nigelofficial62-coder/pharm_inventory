@@ -229,24 +229,42 @@ if 'rowa_data' in st.session_state:
         display_load = load_df_filtered[['Medication', 'BIN_CODE', 'BARCODE', 'Current_Stock', 'Max_Target', 'Qty_To_Load', 'Health %']]
         display_load = display_load.rename(columns={'Max_Target': 'PAR Target'})
         
-        with t1_col2:
-            st.write("") # spacing
-            csv_export = display_load.to_csv(index=False).encode('utf-8')
-            st.download_button(
-                label="Export Excel",
-                data=csv_export,
-                file_name=f"ROWA_Pick_List_{datetime.now().strftime('%Y%m%d')}.csv",
-                mime="text/csv",
-                use_container_width=True,
-                type="primary"
-            )
-            
         def color_health(val):
             if val < 0.33: return 'background-color: #FCA47C; color: #1e293b'
             elif val <= 0.66: return 'background-color: #F9D779; color: #1e293b'
             else: return 'background-color: #A1CCA6; color: #1e293b'
                 
         styled_df = display_load.style.format({'Health %': '{:.1%}'}).map(color_health, subset=['Health %'])
+
+        with t1_col2:
+            st.write("") # spacing
+            
+            # Export to Excel with formatting
+            buffer = io.BytesIO()
+            with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+                styled_df.to_excel(writer, index=False, sheet_name='Pick List')
+                worksheet = writer.sheets['Pick List']
+                
+                # Format column widths
+                worksheet.column_dimensions['A'].width = 40  # Medication
+                worksheet.column_dimensions['B'].width = 15  # BIN_CODE
+                worksheet.column_dimensions['C'].width = 15  # BARCODE
+                worksheet.column_dimensions['D'].width = 15  # Current_Stock
+                worksheet.column_dimensions['E'].width = 15  # PAR Target
+                worksheet.column_dimensions['F'].width = 15  # Qty_To_Load
+                worksheet.column_dimensions['G'].width = 15  # Health %
+                
+            excel_data = buffer.getvalue()
+            
+            st.download_button(
+                label="Export Excel",
+                data=excel_data,
+                file_name=f"ROWA_Pick_List_{datetime.now().strftime('%Y%m%d')}.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                use_container_width=True,
+                type="primary"
+            )
+            
         st.dataframe(styled_df, use_container_width=True, hide_index=True, height=500)
 
     with tab2:
