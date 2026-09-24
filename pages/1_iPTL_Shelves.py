@@ -1,11 +1,12 @@
 import streamlit as st
 import pandas as pd
 import io
+from components.shelf_grid import shelf_grid
 
 st.set_page_config(layout="wide", page_title="SENTINEL")
 
 # --- ENTERPRISE CSS ---
-st.markdown("""
+CSS_STRING = """
 <style>
     /* Clean off-white background to create depth for the white shelves */
     .stApp {
@@ -59,6 +60,7 @@ st.markdown("""
         cursor: pointer;
         transition: all 0.2s ease;
         color: #1e293b;
+        user-select: none;
     }
     .bin-box:hover { transform: translateY(-1px); box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 10; }
     
@@ -69,6 +71,7 @@ st.markdown("""
     .status-green { background-color: #A1CCA6; }     /* >66% */
     .status-yellow { background-color: #F9D779; }    /* 33-66% */
     .status-red { background-color: #FCA47C; }       /* <33% */
+    .status-blue { background-color: #60A5FA; color: #ffffff; }
     .status-overflow { background-color: #64748b; color: #ffffff; border: 1px solid #475569; }
     .status-grey { background-color: #f1f5f9; color: #94a3b8; border: 1px solid #e2e8f0; box-shadow: none; }
     
@@ -103,7 +106,8 @@ st.markdown("""
         color: #097C87;
     }
 </style>
-""", unsafe_allow_html=True)
+"""
+st.markdown(CSS_STRING, unsafe_allow_html=True)
 
 # --- SHELF CONFIGURATIONS ---
 shelf_configs = {
@@ -257,9 +261,17 @@ if 'iptl_data' in st.session_state:
         df['Target_Level'] = df['Target_Level'].fillna(100)
         df['Health_Pct'] = df['Current_Stock'] / df['Target_Level']
         
+        if 'restocked_bins' not in st.session_state:
+            st.session_state['restocked_bins'] = set()
+            
         def calculate_status(row):
             if pd.isna(row.get('Type')): return 'grey'
             if row.get('Is_Overflow', False): return 'overflow'
+            
+            shelf_bin_id = f"{row['Shelf']}_{row['Bin']}"
+            if shelf_bin_id in st.session_state['restocked_bins']:
+                return 'blue'
+                
             pct = row['Health_Pct']
             if pct >= 1.0: return 'green'
             elif pct >= 0.5: return 'yellow'
@@ -364,11 +376,25 @@ with tab1:
                                 status = "grey"
                                 tooltip = f"{shelf_name} - {bin_id}"
                                 
-                            html_grid += f"<div class='bin-box status-{status} {span_class}' title='{tooltip}'>{bin_counter}</div>"
+                            html_grid += f"<div class='bin-box status-{status} {span_class}' title='{tooltip}' data-id='{shelf_name}_{bin_id}'>{bin_counter}</div>"
                             bin_counter += 1
                             
                     html_grid += "</div>"
-                    st.markdown(html_grid, unsafe_allow_html=True)
+                    
+                    clicked_data = shelf_grid(html_grid, css_string=CSS_STRING, key=f"grid_{shelf_name}")
+                    
+                    if clicked_data:
+                        clicked_id = clicked_data.get("id")
+                        click_ts = clicked_data.get("timestamp")
+                        last_click_key = f"last_click_{shelf_name}"
+                        
+                        if st.session_state.get(last_click_key) != click_ts:
+                            st.session_state[last_click_key] = click_ts
+                            if clicked_id in st.session_state['restocked_bins']:
+                                st.session_state['restocked_bins'].remove(clicked_id)
+                            else:
+                                st.session_state['restocked_bins'].add(clicked_id)
+                            st.rerun()
 
 with tab2:
     if df is not None:

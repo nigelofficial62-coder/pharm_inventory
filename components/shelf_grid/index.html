@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style id="custom-style"></style>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Prevent scrollbars */
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script>
+        function sendMessageToStreamlitClient(type, data) {
+            const outData = Object.assign({
+                isStreamlitMessage: true,
+                type: type,
+            }, data);
+            window.parent.postMessage(outData, "*");
+        }
+
+        const Streamlit = {
+            setComponentReady: function() {
+                sendMessageToStreamlitClient("streamlit:componentReady", {apiVersion: 1});
+            },
+            setFrameHeight: function(height) {
+                sendMessageToStreamlitClient("streamlit:setFrameHeight", {height: height !== undefined ? height : document.body.scrollHeight});
+            },
+            setComponentValue: function(value) {
+                sendMessageToStreamlitClient("streamlit:setComponentValue", {value: value});
+            },
+            events: {
+                addEventListener: function(type, callback) {
+                    window.addEventListener("message", function(event) {
+                        if (event.data.type === type) {
+                            callback(event.data);
+                        }
+                    });
+                }
+            }
+        };
+
+        Streamlit.events.addEventListener("streamlit:render", function(event) {
+            const data = event.args;
+            
+            // Apply custom CSS from Python
+            if (data.css_string) {
+                document.getElementById("custom-style").innerHTML = data.css_string;
+            }
+
+            // Render HTML
+            const root = document.getElementById("root");
+            if (data.html_grid) {
+                root.innerHTML = data.html_grid;
+            }
+
+            // Attach click listeners
+            const bins = root.querySelectorAll(".bin-box");
+            bins.forEach(bin => {
+                bin.onclick = function(e) {
+                    // Only clickable if not grey and not overflow
+                    if (!bin.classList.contains('status-grey') && !bin.classList.contains('status-overflow')) {
+                        const bin_id = bin.getAttribute("data-id");
+                        // Send back an object with a timestamp so repeated clicks on the same bin trigger a Python state change
+                        Streamlit.setComponentValue({
+                            "id": bin_id,
+                            "timestamp": Date.now()
+                        });
+                    }
+                }
+            });
+
+            Streamlit.setFrameHeight(document.getElementById("root").scrollHeight + 20);
+        });
+        
+        // Auto-adjust height dynamically when the grid renders
+        new ResizeObserver(() => {
+            Streamlit.setFrameHeight(document.getElementById("root").scrollHeight + 20);
+        }).observe(document.body);
+
+        Streamlit.setComponentReady();
+    </script>
+</body>
+</html>
