@@ -72,6 +72,7 @@ CSS_STRING = """
     .status-yellow { background-color: #F9D779; }    /* 33-66% */
     .status-red { background-color: #FCA47C; }       /* <33% */
     .status-blue { background-color: #60A5FA; color: #ffffff; }
+    .status-purple { background-color: #c084fc; color: #ffffff; }
     .status-overflow { background-color: #64748b; color: #ffffff; border: 1px solid #475569; }
     .status-grey { background-color: #f1f5f9; color: #94a3b8; border: 1px solid #e2e8f0; box-shadow: none; }
     
@@ -175,6 +176,8 @@ with header_col2:
                         ssrs_df = ssrs_df.drop_duplicates(subset=['Medication'])
                         st.session_state['iptl_data'] = ssrs_df
                         st.session_state['iptl_uploaded_name'] = uploaded_file.name
+                        st.session_state['restocked_bins'] = set()
+                        st.session_state['oos_bins'] = set()
                         st.rerun()
                     else:
                         st.error("Could not find an 'ARTICLE NAME' or 'ITEM NAME' column in the uploaded file.")
@@ -210,6 +213,8 @@ with header_col2:
                         ssrs_df = ssrs_df.drop_duplicates(subset=['Medication'])
                         st.session_state['iptl_data'] = ssrs_df
                         st.session_state['iptl_uploaded_name'] = "pasted_data"
+                        st.session_state['restocked_bins'] = set()
+                        st.session_state['oos_bins'] = set()
                         st.rerun()
                     except Exception as e:
                         st.error(f"Failed to parse pasted data: {e}")
@@ -218,6 +223,10 @@ with header_col2:
             del st.session_state['iptl_data']
             if 'iptl_uploaded_name' in st.session_state:
                 del st.session_state['iptl_uploaded_name']
+            if 'restocked_bins' in st.session_state:
+                st.session_state['restocked_bins'] = set()
+            if 'oos_bins' in st.session_state:
+                st.session_state['oos_bins'] = set()
             st.rerun()
 
 st.markdown("<br>", unsafe_allow_html=True)
@@ -263,6 +272,8 @@ if 'iptl_data' in st.session_state:
         
         if 'restocked_bins' not in st.session_state:
             st.session_state['restocked_bins'] = set()
+        if 'oos_bins' not in st.session_state:
+            st.session_state['oos_bins'] = set()
             
         def calculate_status(row):
             if pd.isna(row.get('Type')): return 'grey'
@@ -271,6 +282,8 @@ if 'iptl_data' in st.session_state:
             shelf_bin_id = f"{row['Shelf']}_{row['Bin']}"
             if shelf_bin_id in st.session_state['restocked_bins']:
                 return 'blue'
+            if shelf_bin_id in st.session_state['oos_bins']:
+                return 'purple'
                 
             pct = row['Health_Pct']
             if pct >= 1.0: return 'green'
@@ -327,6 +340,56 @@ if 'iptl_data' in st.session_state:
         st.error("master_config.csv not found.")
 else:
     st.info("Awaiting Data. Please use the Manage Data menu above to upload an SSRS report to activate the shelves.")
+
+@st.dialog(" ")
+def bin_action_modal(bin_id, med_name):
+    st.markdown(f"<div style='text-align: center; margin-bottom: 25px; margin-top: -10px; font-size: 1.2rem; font-weight: 700; color: #097C87;'>{med_name}</div>", unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        if st.button("Restock", use_container_width=True):
+            st.session_state['oos_bins'].discard(bin_id)
+            st.session_state['restocked_bins'].add(bin_id)
+            st.rerun()
+            
+    with col2:
+        if st.button("Out of Stock", use_container_width=True):
+            st.session_state['restocked_bins'].discard(bin_id)
+            st.session_state['oos_bins'].add(bin_id)
+            st.rerun()
+            
+    with col3:
+        if st.button("Reset", use_container_width=True):
+            st.session_state['restocked_bins'].discard(bin_id)
+            st.session_state['oos_bins'].discard(bin_id)
+            st.rerun()
+            
+    # Inject CSS to hide the default dialog title and compress padding, and JS to color buttons
+    st.components.v1.html("""
+    <script>
+    // Inject CSS into the parent document to hide the default dialog title and compress padding
+    const parentDoc = window.parent.document;
+    if (!parentDoc.getElementById('custom-dialog-style')) {
+        const style = parentDoc.createElement('style');
+        style.id = 'custom-dialog-style';
+        style.innerHTML = `
+            div[data-testid="stDialog"] h2 { display: none !important; }
+            div[data-testid="stDialog"] header { padding-bottom: 0 !important; min-height: 20px !important; }
+            div[data-testid="stDialog"] .stVerticalBlock { gap: 0.5rem !important; }
+            div[data-testid="stDialog"] > div[role="dialog"] { width: 450px !important; min-width: 450px !important; max-width: 90vw !important; }
+        `;
+        parentDoc.head.appendChild(style);
+    }
+    
+    const btns = window.parent.document.querySelectorAll('div[data-testid="stDialog"] button');
+    btns.forEach(b => {
+        if(b.innerText.includes('Restock')) { b.style.backgroundColor = '#60A5FA'; b.style.color = 'white'; b.style.borderColor = '#60A5FA'; b.style.fontWeight = '600'; }
+        if(b.innerText.includes('Out of Stock')) { b.style.backgroundColor = '#c084fc'; b.style.color = 'white'; b.style.borderColor = '#c084fc'; b.style.fontWeight = '600'; }
+        if(b.innerText.includes('Reset')) { b.style.backgroundColor = '#f8fafc'; b.style.color = '#64748b'; b.style.borderColor = '#e2e8f0'; b.style.fontWeight = '600'; }
+    });
+    </script>
+    """, height=0)
 
 # --- TABS ---
 tab1, tab2 = st.tabs(["iPTL Shelves Overview", "iPTL Restock Action List"])
@@ -390,11 +453,12 @@ with tab1:
                         
                         if st.session_state.get(last_click_key) != click_ts:
                             st.session_state[last_click_key] = click_ts
-                            if clicked_id in st.session_state['restocked_bins']:
-                                st.session_state['restocked_bins'].remove(clicked_id)
-                            else:
-                                st.session_state['restocked_bins'].add(clicked_id)
-                            st.rerun()
+                            
+                            shelf_str, bin_str = clicked_id.split('_')
+                            matching_row = df[(df['Shelf'] == shelf_str) & (df['Bin'] == bin_str)]
+                            med_name = matching_row.iloc[0]['Medication'] if not matching_row.empty else "Unknown Medication"
+                            
+                            bin_action_modal(clicked_id, med_name)
 
 with tab2:
     if df is not None:

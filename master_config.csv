@@ -171,7 +171,7 @@ Shelf,Bin,Item Code,Medication,Type,P95_DAILY_DEMAND,VELOCITY_CATEGORY,Max_Capac
 3,30,ITM-002493,FLEET FOR CHILDREN Enema 66.6mL,Non-Buffer,5,Slow-Moving,,,
 3,6,ITM-002503,Montelukast 4mg Oral Granules,Non-Buffer,84,Slow-Moving,,,
 1,46,ITM-002535,Mycophenolate Mofetil [CELLCEPT] 250mg Capsule,Non-Buffer,200,Slow-Moving,,,
-6,31,ITM-002539,Mycophenolate Mofetil [CELLCEPT] 500mg Tablet,Buffer,2000,Fast-Moving,,,
+6,31,ITM-002539,Mycophenolate Mofetil [CELLCEPT] 500mg Tablet,Buffer,1500,Fast-Moving,,,
 6,24,ITM-002636,Norethisterone 5mg Tablet,Non-Buffer,100,Slow-Moving,,,
 4,27,ITM-002642,Nortriptyline 10mg Capsule/Tablet,Non-Buffer,860,Medium-Moving,,,
 5,1,ITM-002657,Ofloxacin [TARIVID] 0.3% Ear Drop 15mL,Non-Buffer,5,Medium-Moving,,,
