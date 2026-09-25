@@ -374,8 +374,7 @@ def bin_action_modal(bin_id, med_name):
         const style = parentDoc.createElement('style');
         style.id = 'custom-dialog-style';
         style.innerHTML = `
-            div[data-testid="stDialog"] h2 { display: none !important; }
-            div[data-testid="stDialog"] header { padding-bottom: 0 !important; min-height: 20px !important; }
+            div[data-testid="stDialog"] header { display: none !important; }
             div[data-testid="stDialog"] .stVerticalBlock { gap: 0.5rem !important; }
             div[data-testid="stDialog"] > div[role="dialog"] { width: 450px !important; min-width: 450px !important; max-width: 90vw !important; }
         `;
