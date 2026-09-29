@@ -2,8 +2,16 @@ import streamlit as st
 import pandas as pd
 import io
 from components.shelf_grid import shelf_grid
+from utils.db import save_inventory_snapshot, fetch_latest_inventory, log_bin_action, fetch_active_overrides, remove_bin_action
 
 st.set_page_config(layout="wide", page_title="SENTINEL")
+
+if 'iptl_data' not in st.session_state and not st.session_state.get('force_upload', False):
+    with st.spinner("Fetching latest inventory from database..."):
+        db_df, db_timestamp = fetch_latest_inventory("iPTL")
+        if db_df is not None:
+            st.session_state['iptl_data'] = db_df
+            st.session_state['iptl_inventory_time'] = db_timestamp
 
 # --- ENTERPRISE CSS ---
 CSS_STRING = """
@@ -176,8 +184,11 @@ with header_col2:
                         ssrs_df = ssrs_df.drop_duplicates(subset=['Medication'])
                         st.session_state['iptl_data'] = ssrs_df
                         st.session_state['iptl_uploaded_name'] = uploaded_file.name
-                        st.session_state['restocked_bins'] = set()
-                        st.session_state['oos_bins'] = set()
+                        # Save to Supabase and get the new timestamp
+                        with st.spinner("Pushing inventory to database..."):
+                            now_str = save_inventory_snapshot(ssrs_df, "iPTL")
+                            st.session_state['iptl_inventory_time'] = now_str
+                        st.session_state['force_upload'] = False
                         st.rerun()
                     else:
                         st.error("Could not find an 'ARTICLE NAME' or 'ITEM NAME' column in the uploaded file.")
@@ -213,20 +224,22 @@ with header_col2:
                         ssrs_df = ssrs_df.drop_duplicates(subset=['Medication'])
                         st.session_state['iptl_data'] = ssrs_df
                         st.session_state['iptl_uploaded_name'] = "pasted_data"
-                        st.session_state['restocked_bins'] = set()
-                        st.session_state['oos_bins'] = set()
+                        with st.spinner("Pushing inventory to database..."):
+                            now_str = save_inventory_snapshot(ssrs_df, "iPTL")
+                            st.session_state['iptl_inventory_time'] = now_str
+                        st.session_state['force_upload'] = False
                         st.rerun()
                     except Exception as e:
                         st.error(f"Failed to parse pasted data: {e}")
     else:
         if st.button("🔄 Upload New Data", use_container_width=True):
-            del st.session_state['iptl_data']
+            st.session_state['force_upload'] = True
+            if 'iptl_data' in st.session_state:
+                del st.session_state['iptl_data']
             if 'iptl_uploaded_name' in st.session_state:
                 del st.session_state['iptl_uploaded_name']
-            if 'restocked_bins' in st.session_state:
-                st.session_state['restocked_bins'] = set()
-            if 'oos_bins' in st.session_state:
-                st.session_state['oos_bins'] = set()
+            if 'iptl_inventory_time' in st.session_state:
+                del st.session_state['iptl_inventory_time']
             st.rerun()
 
 st.markdown("<br>", unsafe_allow_html=True)
@@ -270,20 +283,17 @@ if 'iptl_data' in st.session_state:
         df['Target_Level'] = df['Target_Level'].fillna(100)
         df['Health_Pct'] = df['Current_Stock'] / df['Target_Level']
         
-        if 'restocked_bins' not in st.session_state:
-            st.session_state['restocked_bins'] = set()
-        if 'oos_bins' not in st.session_state:
-            st.session_state['oos_bins'] = set()
+        # Fetch active overrides from database (so changes sync across all clients instantly)
+        active_overrides = fetch_active_overrides("iPTL", st.session_state.get('iptl_inventory_time', ''))
             
         def calculate_status(row):
             if pd.isna(row.get('Type')): return 'grey'
             if row.get('Is_Overflow', False): return 'overflow'
             
             shelf_bin_id = f"{row['Shelf']}_{row['Bin']}"
-            if shelf_bin_id in st.session_state['restocked_bins']:
-                return 'blue'
-            if shelf_bin_id in st.session_state['oos_bins']:
-                return 'purple'
+            override = active_overrides.get(shelf_bin_id)
+            if override:
+                return override
                 
             pct = row['Health_Pct']
             if pct >= 1.0: return 'green'
@@ -342,27 +352,24 @@ else:
     st.info("Awaiting Data. Please use the Manage Data menu above to upload an SSRS report to activate the shelves.")
 
 @st.dialog(" ")
-def bin_action_modal(bin_id, med_name):
+def bin_action_modal(bin_id, med_name, health_pct):
     st.markdown(f"<div style='text-align: center; margin-bottom: 25px; margin-top: -10px; font-size: 1.2rem; font-weight: 700; color: #097C87;'>{med_name}</div>", unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns(3)
     
     with col1:
         if st.button("Restock", use_container_width=True):
-            st.session_state['oos_bins'].discard(bin_id)
-            st.session_state['restocked_bins'].add(bin_id)
+            log_bin_action("iPTL", med_name, bin_id, health_pct, "RESTOCKED")
             st.rerun()
             
     with col2:
         if st.button("Out of Stock", use_container_width=True):
-            st.session_state['restocked_bins'].discard(bin_id)
-            st.session_state['oos_bins'].add(bin_id)
+            log_bin_action("iPTL", med_name, bin_id, health_pct, "OUT_OF_STOCK")
             st.rerun()
             
     with col3:
         if st.button("Reset", use_container_width=True):
-            st.session_state['restocked_bins'].discard(bin_id)
-            st.session_state['oos_bins'].discard(bin_id)
+            remove_bin_action("iPTL", med_name, bin_id, health_pct)
             st.rerun()
             
     # Inject CSS to hide the default dialog title and compress padding, and JS to color buttons
@@ -456,8 +463,9 @@ with tab1:
                             shelf_str, bin_str = clicked_id.split('_')
                             matching_row = df[(df['Shelf'] == shelf_str) & (df['Bin'] == bin_str)]
                             med_name = matching_row.iloc[0]['Medication'] if not matching_row.empty else "Unknown Medication"
+                            health_pct = matching_row.iloc[0]['Health_Pct'] if not matching_row.empty else 0.0
                             
-                            bin_action_modal(clicked_id, med_name)
+                            bin_action_modal(clicked_id, med_name, health_pct)
 
 with tab2:
     if df is not None:
