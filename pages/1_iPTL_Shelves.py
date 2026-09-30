@@ -184,10 +184,7 @@ with header_col2:
                         ssrs_df = ssrs_df.drop_duplicates(subset=['Medication'])
                         st.session_state['iptl_data'] = ssrs_df
                         st.session_state['iptl_uploaded_name'] = uploaded_file.name
-                        # Save to Supabase and get the new timestamp
-                        with st.spinner("Pushing inventory to database..."):
-                            now_str = save_inventory_snapshot(ssrs_df, "iPTL")
-                            st.session_state['iptl_inventory_time'] = now_str
+                        st.session_state['needs_db_push'] = True
                         st.session_state['force_upload'] = False
                         st.rerun()
                     else:
@@ -224,9 +221,7 @@ with header_col2:
                         ssrs_df = ssrs_df.drop_duplicates(subset=['Medication'])
                         st.session_state['iptl_data'] = ssrs_df
                         st.session_state['iptl_uploaded_name'] = "pasted_data"
-                        with st.spinner("Pushing inventory to database..."):
-                            now_str = save_inventory_snapshot(ssrs_df, "iPTL")
-                            st.session_state['iptl_inventory_time'] = now_str
+                        st.session_state['needs_db_push'] = True
                         st.session_state['force_upload'] = False
                         st.rerun()
                     except Exception as e:
@@ -282,6 +277,13 @@ if 'iptl_data' in st.session_state:
             
         df['Target_Level'] = df['Target_Level'].fillna(100)
         df['Health_Pct'] = df['Current_Stock'] / df['Target_Level']
+        
+        if st.session_state.get('needs_db_push'):
+            with st.spinner("Pushing comprehensive inventory to database..."):
+                unique_meds_df = df.drop_duplicates(subset=['Medication'])
+                now_str = save_inventory_snapshot(unique_meds_df, "iPTL")
+                st.session_state['iptl_inventory_time'] = now_str
+                st.session_state['needs_db_push'] = False
         
         # Fetch active overrides from database (so changes sync across all clients instantly)
         active_overrides = fetch_active_overrides("iPTL", st.session_state.get('iptl_inventory_time', ''))
