@@ -8,10 +8,13 @@ st.set_page_config(layout="wide", page_title="SENTINEL")
 
 if 'iptl_data' not in st.session_state and not st.session_state.get('force_upload', False):
     with st.spinner("Fetching latest inventory from database..."):
-        db_df, db_timestamp = fetch_latest_inventory("iPTL")
-        if db_df is not None:
-            st.session_state['iptl_data'] = db_df
-            st.session_state['iptl_inventory_time'] = db_timestamp
+        try:
+            db_df, db_timestamp = fetch_latest_inventory("iPTL")
+            if db_df is not None:
+                st.session_state['iptl_data'] = db_df
+                st.session_state['iptl_inventory_time'] = db_timestamp
+        except Exception as e:
+            st.warning(f"⚠️ Could not load latest inventory from database ({e}). You can upload or paste an SSRS report above.")
 
 # --- ENTERPRISE CSS ---
 CSS_STRING = """
@@ -280,13 +283,22 @@ if 'iptl_data' in st.session_state:
         
         if st.session_state.get('needs_db_push'):
             with st.spinner("Pushing comprehensive inventory to database..."):
-                unique_meds_df = df.drop_duplicates(subset=['Medication'])
-                now_str = save_inventory_snapshot(unique_meds_df, "iPTL")
-                st.session_state['iptl_inventory_time'] = now_str
-                st.session_state['needs_db_push'] = False
+                try:
+                    unique_meds_df = df.drop_duplicates(subset=['Medication'])
+                    now_str = save_inventory_snapshot(unique_meds_df, "iPTL")
+                    if now_str:
+                        st.session_state['iptl_inventory_time'] = now_str
+                        st.session_state['needs_db_push'] = False
+                except Exception as e:
+                    st.error(f"⚠️ Could not save inventory snapshot to database: {e}")
         
         # Fetch active overrides from database (so changes sync across all clients instantly)
-        active_overrides = fetch_active_overrides("iPTL", st.session_state.get('iptl_inventory_time', ''))
+        try:
+            active_overrides = fetch_active_overrides("iPTL", st.session_state.get('iptl_inventory_time', ''))
+            st.session_state['last_active_overrides'] = active_overrides
+        except Exception as e:
+            st.warning(f"⚠️ Could not sync latest shelf overrides ({e}). Using cached view.")
+            active_overrides = st.session_state.get('last_active_overrides', {})
             
         def calculate_status(row):
             if pd.isna(row.get('Type')): return 'grey'
@@ -323,7 +335,9 @@ if 'iptl_data' in st.session_state:
         </style>
         """, unsafe_allow_html=True)
         
-        m1, m2, m3 = st.columns(3)
+        oos_bins = len(df[df['Status'] == 'purple'])
+        
+        m1, m2, m3, m4 = st.columns(4)
         with m1:
             st.markdown(f"""
             <div class="metric-card" style="border-top: 4px solid #A1CCA6;">
@@ -345,6 +359,13 @@ if 'iptl_data' in st.session_state:
                 <div style="font-size: 2.0rem; font-weight: 800; color: #FCA47C;">{critical_bins}</div>
             </div>
             """, unsafe_allow_html=True)
+        with m4:
+            st.markdown(f"""
+            <div class="metric-card" style="border-top: 4px solid #c084fc;">
+                <div class="metric-title">Out of Stock</div>
+                <div style="font-size: 2.0rem; font-weight: 800; color: #c084fc;">{oos_bins}</div>
+            </div>
+            """, unsafe_allow_html=True)
             
         st.markdown("<br>", unsafe_allow_html=True)
         
@@ -361,17 +382,26 @@ def bin_action_modal(bin_id, med_name, health_pct):
     
     with col1:
         if st.button("Restock", use_container_width=True):
-            log_bin_action("iPTL", med_name, bin_id, health_pct, "RESTOCKED")
+            try:
+                log_bin_action("iPTL", med_name, bin_id, health_pct, "RESTOCKED")
+            except Exception as e:
+                st.error(f"Failed to record restock: {e}")
             st.rerun()
             
     with col2:
         if st.button("Out of Stock", use_container_width=True):
-            log_bin_action("iPTL", med_name, bin_id, health_pct, "OUT_OF_STOCK")
+            try:
+                log_bin_action("iPTL", med_name, bin_id, health_pct, "OUT_OF_STOCK")
+            except Exception as e:
+                st.error(f"Failed to record out-of-stock: {e}")
             st.rerun()
             
     with col3:
         if st.button("Reset", use_container_width=True):
-            remove_bin_action("iPTL", med_name, bin_id, health_pct)
+            try:
+                remove_bin_action("iPTL", med_name, bin_id, health_pct)
+            except Exception as e:
+                st.error(f"Failed to reset action: {e}")
             st.rerun()
             
     # Inject CSS to hide the default dialog title and compress padding, and JS to color buttons
