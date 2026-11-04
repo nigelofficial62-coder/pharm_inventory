@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import io
-from st_click_detector import click_detector
 from utils.db import save_inventory_snapshot, fetch_latest_inventory, log_bin_action, fetch_active_overrides, remove_bin_action
 
 st.set_page_config(layout="wide", page_title="SENTINEL")
@@ -81,11 +80,11 @@ CSS_STRING = """
     .span-2 { grid-column: span 2; }
     
     /* Custom Color Palette based on Health % */
-    .status-green { background-color: #A1CCA6; color: #1e293b !important; }     /* >66% */
-    .status-yellow { background-color: #F9D779; color: #1e293b !important; }    /* 33-66% */
-    .status-red { background-color: #FCA47C; color: #1e293b !important; }       /* <33% */
-    .status-blue { background-color: #60A5FA; color: #ffffff !important; }
-    .status-purple { background-color: #c084fc; color: #ffffff !important; }
+    .status-green, a.status-green:visited { background-color: #A1CCA6; color: #1e293b !important; }     /* >66% */
+    .status-yellow, a.status-yellow:visited { background-color: #F9D779; color: #1e293b !important; }    /* 33-66% */
+    .status-red, a.status-red:visited { background-color: #FCA47C; color: #1e293b !important; }       /* <33% */
+    .status-blue, a.status-blue:visited { background-color: #60A5FA; color: #ffffff !important; }
+    .status-purple, a.status-purple:visited { background-color: #c084fc; color: #ffffff !important; }
     .status-overflow { background-color: #64748b; color: #ffffff !important; border: 1px solid #475569; }
     .status-grey { background-color: #f1f5f9; color: #94a3b8 !important; border: 1px solid #e2e8f0; box-shadow: none; cursor: default; }
     
@@ -431,6 +430,19 @@ def bin_action_modal(bin_id, med_name, health_pct):
     </script>
     """, height=0)
 
+# Handle bin action modal via URL query param (100% cloud-safe, no iframes or custom components)
+if "open_bin" in st.query_params:
+    clicked_id = st.query_params.pop("open_bin")
+    if df is not None and not df.empty:
+        try:
+            shelf_str, bin_str = clicked_id.split('_')
+            matching_row = df[(df['Shelf'] == shelf_str) & (df['Bin'] == bin_str)]
+            med_name = matching_row.iloc[0]['Medication'] if not matching_row.empty else "Unknown Medication"
+            health_pct = matching_row.iloc[0]['Health_Pct'] if not matching_row.empty else 0.0
+            bin_action_modal(clicked_id, med_name, health_pct)
+        except Exception:
+            pass
+
 # --- TABS ---
 tab1, tab2 = st.tabs(["iPTL Shelves Overview", "iPTL Restock Action List"])
 
@@ -482,21 +494,12 @@ with tab1:
                             if status in ['grey', 'overflow']:
                                 html_grid += f"<div class='bin-box status-{status} {span_class}' title='{tooltip}'>{bin_counter}</div>"
                             else:
-                                html_grid += f"<a href='#' id='{shelf_name}_{bin_id}' class='bin-box status-{status} {span_class}' title='{tooltip}'>{bin_counter}</a>"
+                                html_grid += f"<a href='?open_bin={shelf_name}_{bin_id}' target='_self' class='bin-box status-{status} {span_class}' title='{tooltip}'>{bin_counter}</a>"
                             bin_counter += 1
                             
                     html_grid += "</div>"
                     
-                    clicked_id = click_detector(CSS_STRING + html_grid, key=f"grid_{shelf_name}")
-                    
-                    if clicked_id:
-                        st.session_state[f"grid_{shelf_name}"] = ""
-                        shelf_str, bin_str = clicked_id.split('_')
-                        matching_row = df[(df['Shelf'] == shelf_str) & (df['Bin'] == bin_str)]
-                        med_name = matching_row.iloc[0]['Medication'] if not matching_row.empty else "Unknown Medication"
-                        health_pct = matching_row.iloc[0]['Health_Pct'] if not matching_row.empty else 0.0
-                        
-                        bin_action_modal(clicked_id, med_name, health_pct)
+                    st.markdown(html_grid, unsafe_allow_html=True)
 
 with tab2:
     if df is not None:
