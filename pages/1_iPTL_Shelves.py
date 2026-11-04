@@ -6,6 +6,23 @@ from utils.db import save_inventory_snapshot, fetch_latest_inventory, log_bin_ac
 st.set_page_config(layout="wide", page_title="SENTINEL")
 
 # --- PROCESS BIN ACTION (Restock, Out of Stock, Reset) ---
+def handle_bin_action():
+    payload = st.session_state.get("bin_action_payload", "")
+    if payload:
+        try:
+            parts = payload.split(':::')
+            if len(parts) == 4:
+                act_type, b_id, m_name, h_pct = parts
+                h_pct_val = float(h_pct) if h_pct else 0.0
+                if act_type == "RESET":
+                    remove_bin_action("iPTL", m_name, b_id, h_pct_val)
+                else:
+                    log_bin_action("iPTL", m_name, b_id, h_pct_val, act_type)
+        except Exception as e:
+            st.error(f"Failed to record action: {e}")
+        st.session_state["bin_action_payload"] = ""
+
+# Handle query params fallback if present (e.g. direct URL navigation)
 if "bin_act" in st.query_params:
     action_payload = st.query_params.pop("bin_act")
     if action_payload:
@@ -21,6 +38,9 @@ if "bin_act" in st.query_params:
         except Exception as e:
             st.error(f"Failed to record action: {e}")
     st.query_params.clear()
+
+# Hidden action bridge widget (communicates via Streamlit WebSocket without page reload)
+st.text_input("bin_action_payload", key="bin_action_payload", label_visibility="collapsed", on_change=handle_bin_action)
 
 if 'iptl_data' not in st.session_state and not st.session_state.get('force_upload', False):
     with st.spinner("Fetching latest inventory from database..."):
@@ -137,6 +157,20 @@ CSS_STRING = """
         color: #097C87;
     }
 
+    /* Visually hide action trigger bridge offscreen without removing from render tree */
+    .st-key-bin_action_payload,
+    div[data-testid="stElementContainer"]:has(.st-key-bin_action_payload) {
+        position: fixed !important;
+        bottom: 0 !important;
+        right: 0 !important;
+        width: 1px !important;
+        height: 1px !important;
+        opacity: 0.001 !important;
+        pointer-events: none !important;
+        overflow: hidden !important;
+        z-index: -9999 !important;
+    }
+
     /* Sentinel DOM Modal Backdrop & Dialog */
     .sentinel-modal-backdrop {
         position: fixed;
@@ -231,7 +265,9 @@ CSS_STRING = """
         font-weight: 600;
         cursor: pointer;
         transition: all 0.15s ease;
-        border: 1px solid transparent;
+        border: none;
+        outline: none;
+        font-family: inherit;
         text-decoration: none !important;
         display: flex;
         align-items: center;
@@ -243,8 +279,9 @@ CSS_STRING = """
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         text-decoration: none !important;
     }
-    .sentinel-action-btn:active, .sentinel-action-btn:visited {
+    .sentinel-action-btn:active, .sentinel-action-btn:focus {
         transform: translateY(0);
+        outline: none;
         text-decoration: none !important;
     }
     
@@ -546,9 +583,9 @@ modal_html = """
         <div id="sentinel-modal-med" class="sentinel-modal-med">Medication Name</div>
         <div id="sentinel-modal-stock" class="sentinel-modal-stock">Current Stock</div>
         <div class="sentinel-modal-actions">
-            <a id="sentinel-act-restock" href="#" target="_self" class="sentinel-action-btn btn-restock">Restock</a>
-            <a id="sentinel-act-oos" href="#" target="_self" class="sentinel-action-btn btn-oos">Out of Stock</a>
-            <a id="sentinel-act-reset" href="#" target="_self" class="sentinel-action-btn btn-reset">Reset</a>
+            <button type="button" id="sentinel-act-restock" class="sentinel-action-btn btn-restock">Restock</button>
+            <button type="button" id="sentinel-act-oos" class="sentinel-action-btn btn-oos">Out of Stock</button>
+            <button type="button" id="sentinel-act-reset" class="sentinel-action-btn btn-reset">Reset</button>
         </div>
     </div>
 </div>
@@ -645,19 +682,6 @@ js_controller = """
         if (med) med.innerText = data.med;
         if (stock) stock.innerHTML = `Current Stock: <b>${data.stock}</b> / ${data.target} (${data.pct}%)`;
         
-        // Populate action links with exact payloads for native top-level navigation
-        const restockLink = parentDoc.getElementById('sentinel-act-restock');
-        const oosLink = parentDoc.getElementById('sentinel-act-oos');
-        const resetLink = parentDoc.getElementById('sentinel-act-reset');
-        
-        const payloadRestock = `RESTOCKED:::${data.shelf}_${data.bin}:::${data.med}:::${data.rawPct}`;
-        const payloadOos = `OUT_OF_STOCK:::${data.shelf}_${data.bin}:::${data.med}:::${data.rawPct}`;
-        const payloadReset = `RESET:::${data.shelf}_${data.bin}:::${data.med}:::${data.rawPct}`;
-        
-        if (restockLink) restockLink.href = `?bin_act=${encodeURIComponent(payloadRestock)}`;
-        if (oosLink) oosLink.href = `?bin_act=${encodeURIComponent(payloadOos)}`;
-        if (resetLink) resetLink.href = `?bin_act=${encodeURIComponent(payloadReset)}`;
-        
         backdrop.style.display = 'flex';
     }
     
@@ -668,8 +692,102 @@ js_controller = """
         if (backdrop) backdrop.style.display = 'none';
     }
     
+    function submitBinAction(actionType) {
+        const activeBin = window.parent.__sentinel_active_bin;
+        if (!activeBin) return;
+        
+        // 1. Optimistic UI update on the clicked bin (instant visual feedback with 0ms delay)
+        const targetEl = window.parent.__sentinel_active_element;
+        if (targetEl) {
+            const spanClass = targetEl.classList.contains('span-2') ? 'span-2' : 'span-1';
+            if (actionType === 'RESTOCKED') {
+                targetEl.className = `bin-box status-blue ${spanClass}`;
+            } else if (actionType === 'OUT_OF_STOCK') {
+                targetEl.className = `bin-box status-purple ${spanClass}`;
+            } else if (actionType === 'RESET') {
+                const rawPct = parseFloat(targetEl.getAttribute('data-raw-pct') || '1.0');
+                let origStatus = 'green';
+                if (rawPct < 0.5) origStatus = 'red';
+                else if (rawPct < 1.0) origStatus = 'yellow';
+                targetEl.className = `bin-box status-${origStatus} ${spanClass}`;
+            }
+        }
+        
+        // Close modal dialog immediately
+        closeModal();
+        
+        const payload = `${actionType}:::${activeBin.shelf}_${activeBin.bin}:::${activeBin.med}:::${activeBin.rawPct}`;
+        
+        const input = parentDoc.querySelector('.st-key-bin_action_payload input') 
+                   || parentDoc.querySelector('input[aria-label="bin_action_payload"]');
+                   
+        if (input) {
+            let sent = false;
+            
+            // Priority 1: Direct Streamlit React Fiber widget manager state sync
+            try {
+                const fiberKey = Object.keys(input).find(k => k.startsWith('__reactFiber$'));
+                if (fiberKey) {
+                    let curr = input[fiberKey];
+                    while (curr) {
+                        if (curr.memoizedProps && curr.memoizedProps.widgetMgr && curr.memoizedProps.element) {
+                            curr.memoizedProps.widgetMgr.setStringValue(curr.memoizedProps.element, payload, { fromUi: true });
+                            sent = true;
+                            break;
+                        }
+                        curr = curr.return;
+                    }
+                }
+            } catch (err) {
+                console.warn("Sentinel: fiber dispatch warning:", err);
+            }
+            
+            // Priority 2: React Synthetic Event handlers (onChange + onKeyPress Enter + onBlur)
+            if (!sent) {
+                try {
+                    const reactPropsKey = Object.keys(input).find(k => k.startsWith('__reactProps$'));
+                    if (reactPropsKey && input[reactPropsKey]) {
+                        const props = input[reactPropsKey];
+                        if (typeof props.onChange === 'function') {
+                            props.onChange({ target: { value: payload } });
+                        }
+                        if (typeof props.onKeyPress === 'function') {
+                            props.onKeyPress({ key: 'Enter', keyCode: 13, which: 13, preventDefault: () => {} });
+                        }
+                        if (typeof props.onBlur === 'function') {
+                            props.onBlur();
+                        }
+                        sent = true;
+                    }
+                } catch (err) {
+                    console.warn("Sentinel: react props dispatch warning:", err);
+                }
+            }
+            
+            // Priority 3: Native DOM events with Enter keypress
+            if (!sent) {
+                try {
+                    const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+                    nativeSetter.call(input, payload);
+                    input.dispatchEvent(new Event('input', { bubbles: true }));
+                    input.dispatchEvent(new Event('change', { bubbles: true }));
+                    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', keyCode: 13, bubbles: true }));
+                    input.dispatchEvent(new KeyboardEvent('keypress', { key: 'Enter', keyCode: 13, bubbles: true }));
+                    input.dispatchEvent(new FocusEvent('blur', { bubbles: true }));
+                    sent = true;
+                } catch (err) {
+                    console.warn("Sentinel: native event dispatch warning:", err);
+                }
+            }
+        } else {
+            // Absolute last-resort fallback if bridge input is not in DOM
+            window.parent.location.search = `?bin_act=${encodeURIComponent(payload)}`;
+        }
+    }
+    
     window.parent.__sentinel_openModal = openModal;
     window.parent.__sentinel_closeModal = closeModal;
+    window.parent.__sentinel_submitBinAction = submitBinAction;
     
     if (!parentDoc.__sentinel_listener_attached) {
         parentDoc.__sentinel_listener_attached = true;
@@ -715,7 +833,36 @@ js_controller = """
                 return;
             }
             
-            // 4. Action buttons: let native <a href="?bin_act=..."> navigation proceed to Python!
+            // 4. Action buttons clicked
+            const restockBtn = e.target.closest('#sentinel-act-restock');
+            if (restockBtn) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (window.parent.__sentinel_submitBinAction) {
+                    window.parent.__sentinel_submitBinAction('RESTOCKED');
+                }
+                return;
+            }
+            
+            const oosBtn = e.target.closest('#sentinel-act-oos');
+            if (oosBtn) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (window.parent.__sentinel_submitBinAction) {
+                    window.parent.__sentinel_submitBinAction('OUT_OF_STOCK');
+                }
+                return;
+            }
+            
+            const resetBtn = e.target.closest('#sentinel-act-reset');
+            if (resetBtn) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (window.parent.__sentinel_submitBinAction) {
+                    window.parent.__sentinel_submitBinAction('RESET');
+                }
+                return;
+            }
         });
         
         parentDoc.addEventListener('keydown', function(e) {
