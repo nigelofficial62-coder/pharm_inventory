@@ -120,21 +120,6 @@ CSS_STRING = """
         color: #097C87;
     }
 
-    /* Visually hide action trigger bridge offscreen without removing from render tree */
-    .st-key-bin_action_payload,
-    .st-key-bin_action_submit,
-    div[data-testid="stElementContainer"]:has(input[aria-label="bin_action_payload"]),
-    div[data-testid="stElementContainer"]:has(input[aria-label="bin_action_payload"]) + div[data-testid="stElementContainer"] {
-        position: fixed !important;
-        bottom: 0 !important;
-        right: 0 !important;
-        width: 1px !important;
-        height: 1px !important;
-        opacity: 0.01 !important;
-        overflow: hidden !important;
-        z-index: -100 !important;
-    }
-
     /* Sentinel DOM Modal Backdrop & Dialog */
     .sentinel-modal-backdrop {
         position: fixed;
@@ -526,29 +511,22 @@ if 'iptl_data' in st.session_state:
 else:
     st.info("Awaiting Data. Please use the Manage Data menu above to upload an SSRS report to activate the shelves.")
 
-# --- HIDDEN ACTION BRIDGE (invoked via JavaScript, zero full page reload) ---
-action_payload = st.text_input("bin_action_payload", key="bin_action_payload", label_visibility="collapsed")
-action_submitted = st.button("bin_action_submit", key="bin_action_submit")
-
-# Check query params as a reliable fallback
+# Handle any direct action query param fallback if needed
 if "bin_act" in st.query_params:
-    action_submitted = True
     action_payload = st.query_params.pop("bin_act")
-
-if action_submitted and action_payload:
-    try:
-        parts = action_payload.split(':::')
-        if len(parts) == 4:
-            act_type, b_id, m_name, h_pct = parts
-            h_pct_val = float(h_pct) if h_pct else 0.0
-            if act_type == "RESET":
-                remove_bin_action("iPTL", m_name, b_id, h_pct_val)
-            else:
-                log_bin_action("iPTL", m_name, b_id, h_pct_val, act_type)
-    except Exception as e:
-        st.error(f"Failed to record action: {e}")
-    st.session_state["bin_action_payload"] = ""
-    st.rerun()
+    if action_payload:
+        try:
+            parts = action_payload.split(':::')
+            if len(parts) == 4:
+                act_type, b_id, m_name, h_pct = parts
+                h_pct_val = float(h_pct) if h_pct else 0.0
+                if act_type == "RESET":
+                    remove_bin_action("iPTL", m_name, b_id, h_pct_val)
+                else:
+                    log_bin_action("iPTL", m_name, b_id, h_pct_val, act_type)
+        except Exception as e:
+            st.error(f"Failed to record action: {e}")
+        st.rerun()
 
 # --- CLIENT-SIDE INSTANT MODAL CONTAINER ---
 modal_html = """
@@ -638,10 +616,15 @@ with tab1:
                     
                     st.markdown(html_grid, unsafe_allow_html=True)
 
-# Client Controller Script (Handles instant client-side modal & WebSocket action submission)
-st.components.v1.html("""
+# Client Controller Script (Handles instant client-side modal & direct Supabase action persistence)
+sb_url = st.secrets.get("supabase", {}).get("url", "")
+sb_key = st.secrets.get("supabase", {}).get("key", "")
+
+js_controller = """
 <script>
 (function() {
+    const SUPABASE_URL = "__SUPABASE_URL__";
+    const SUPABASE_KEY = "__SUPABASE_KEY__";
     const parentDoc = window.parent.document;
     
     function openModal(data, el) {
@@ -663,8 +646,21 @@ st.components.v1.html("""
     
     function closeModal() {
         window.parent.__sentinel_active_bin = null;
+        window.parent.__sentinel_active_element = null;
         const backdrop = parentDoc.getElementById('sentinel-bin-modal-backdrop');
         if (backdrop) backdrop.style.display = 'none';
+    }
+    
+    function getSingaporeISO() {
+        const d = new Date();
+        const sgTime = new Date(d.getTime() + (8 * 60 + d.getTimezoneOffset()) * 60000);
+        const pad = n => String(n).padStart(2, '0');
+        return sgTime.getFullYear() + '-' +
+               pad(sgTime.getMonth() + 1) + '-' +
+               pad(sgTime.getDate()) + 'T' +
+               pad(sgTime.getHours()) + ':' +
+               pad(sgTime.getMinutes()) + ':' +
+               pad(sgTime.getSeconds()) + '+08:00';
     }
     
     function submitAction(actionType) {
@@ -690,28 +686,35 @@ st.components.v1.html("""
         
         closeModal();
         
-        const payload = `${actionType}:::${activeBin.shelf}_${activeBin.bin}:::${activeBin.med}:::${activeBin.rawPct}`;
-        
-        const input = parentDoc.querySelector('.st-key-bin_action_payload input') 
-                   || parentDoc.querySelector('input[aria-label="bin_action_payload"]');
-        const submitBtn = parentDoc.querySelector('.st-key-bin_action_submit button') 
-                      || parentDoc.querySelector('div[data-testid="stButton"] button');
-        
-        if (input) {
-            const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
-            nativeInputValueSetter.call(input, payload);
-            input.dispatchEvent(new Event('input', { bubbles: true }));
-            input.dispatchEvent(new Event('change', { bubbles: true }));
-            input.dispatchEvent(new Event('blur', { bubbles: true }));
-        }
-        
-        if (submitBtn) {
-            setTimeout(() => {
-                submitBtn.click();
-            }, 30);
-        } else {
-            // Reliable fallback
-            window.parent.location.search = `?bin_act=${encodeURIComponent(payload)}`;
+        // Direct persistence to Supabase database via REST API
+        if (SUPABASE_URL && SUPABASE_KEY) {
+            const payload = {
+                created_at: getSingaporeISO(),
+                system_type: "iPTL",
+                medication_name: activeBin.med,
+                shelf_bin_id: `${activeBin.shelf}_${activeBin.bin}`,
+                health_at_time_of_restock: parseFloat(activeBin.rawPct || 0),
+                action_type: actionType
+            };
+            
+            fetch(`${SUPABASE_URL}/rest/v1/iptl_restock_actions`, {
+                method: "POST",
+                headers: {
+                    "apikey": SUPABASE_KEY,
+                    "Authorization": "Bearer " + SUPABASE_KEY,
+                    "Content-Type": "application/json",
+                    "Prefer": "return=minimal"
+                },
+                body: JSON.stringify(payload)
+            }).then(function(res) {
+                if (res.ok) {
+                    console.log("SENTINEL: Action persisted to Supabase successfully (" + actionType + ")");
+                } else {
+                    console.error("SENTINEL: Supabase HTTP error: " + res.status);
+                }
+            }).catch(function(err) {
+                console.error("SENTINEL: Supabase network error:", err);
+            });
         }
     }
     
@@ -789,7 +792,9 @@ st.components.v1.html("""
     }
 })();
 </script>
-""", height=0)
+""".replace("__SUPABASE_URL__", sb_url).replace("__SUPABASE_KEY__", sb_key)
+
+st.components.v1.html(js_controller, height=0)
 
 with tab2:
     if df is not None:

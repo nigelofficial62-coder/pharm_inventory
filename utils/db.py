@@ -83,14 +83,13 @@ def fetch_latest_inventory(system_type: str):
     
     return df, latest_time
 
-@st.cache_data(ttl=15, show_spinner=False)
+@st.cache_data(ttl=2, show_spinner=False)
 def fetch_active_overrides(system_type: str, since_timestamp: str) -> dict:
     """
     Fetches actions and computes the active overrides.
     - OUT_OF_STOCK permanently stays active until manually reset or restocked.
     - RESTOCKED only stays active if it occurred AFTER the last inventory upload.
-    Cached for 15s to keep UI snappy (0ms latency on bin clicks),
-    while automatically clearing on actions and syncing across clients.
+    Cached for 2s to keep UI snappy while immediately reflecting updates.
     """
     supabase = init_supabase()
     
@@ -112,11 +111,18 @@ def fetch_active_overrides(system_type: str, since_timestamp: str) -> dict:
                 overrides[bin_id] = "purple"
             elif act == "RESTOCKED":
                 # Restocks vanish if a new inventory CSV was uploaded AFTER the restock happened
-                if since_timestamp and action_time >= since_timestamp:
-                    overrides[bin_id] = "blue"
+                if since_timestamp:
+                    try:
+                        is_after = pd.to_datetime(action_time) >= pd.to_datetime(since_timestamp)
+                    except Exception:
+                        is_after = (str(action_time) >= str(since_timestamp))
+                    if is_after:
+                        overrides[bin_id] = "blue"
+                    else:
+                        if bin_id in overrides:
+                            del overrides[bin_id]
                 else:
-                    if bin_id in overrides:
-                        del overrides[bin_id]
+                    overrides[bin_id] = "blue"
             elif act == "RESET":
                 if bin_id in overrides:
                     del overrides[bin_id]
