@@ -232,13 +232,20 @@ CSS_STRING = """
         cursor: pointer;
         transition: all 0.15s ease;
         border: 1px solid transparent;
+        text-decoration: none !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        user-select: none;
     }
     .sentinel-action-btn:hover {
         transform: translateY(-1px);
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        text-decoration: none !important;
     }
-    .sentinel-action-btn:active {
+    .sentinel-action-btn:active, .sentinel-action-btn:visited {
         transform: translateY(0);
+        text-decoration: none !important;
     }
     
     .btn-restock {
@@ -539,9 +546,9 @@ modal_html = """
         <div id="sentinel-modal-med" class="sentinel-modal-med">Medication Name</div>
         <div id="sentinel-modal-stock" class="sentinel-modal-stock">Current Stock</div>
         <div class="sentinel-modal-actions">
-            <button id="sentinel-act-restock" class="sentinel-action-btn btn-restock">Restock</button>
-            <button id="sentinel-act-oos" class="sentinel-action-btn btn-oos">Out of Stock</button>
-            <button id="sentinel-act-reset" class="sentinel-action-btn btn-reset">Reset</button>
+            <a id="sentinel-act-restock" href="#" target="_self" class="sentinel-action-btn btn-restock">Restock</a>
+            <a id="sentinel-act-oos" href="#" target="_self" class="sentinel-action-btn btn-oos">Out of Stock</a>
+            <a id="sentinel-act-reset" href="#" target="_self" class="sentinel-action-btn btn-reset">Reset</a>
         </div>
     </div>
 </div>
@@ -638,6 +645,19 @@ js_controller = """
         if (med) med.innerText = data.med;
         if (stock) stock.innerHTML = `Current Stock: <b>${data.stock}</b> / ${data.target} (${data.pct}%)`;
         
+        // Populate action links with exact payloads for native top-level navigation
+        const restockLink = parentDoc.getElementById('sentinel-act-restock');
+        const oosLink = parentDoc.getElementById('sentinel-act-oos');
+        const resetLink = parentDoc.getElementById('sentinel-act-reset');
+        
+        const payloadRestock = `RESTOCKED:::${data.shelf}_${data.bin}:::${data.med}:::${data.rawPct}`;
+        const payloadOos = `OUT_OF_STOCK:::${data.shelf}_${data.bin}:::${data.med}:::${data.rawPct}`;
+        const payloadReset = `RESET:::${data.shelf}_${data.bin}:::${data.med}:::${data.rawPct}`;
+        
+        if (restockLink) restockLink.href = `?bin_act=${encodeURIComponent(payloadRestock)}`;
+        if (oosLink) oosLink.href = `?bin_act=${encodeURIComponent(payloadOos)}`;
+        if (resetLink) resetLink.href = `?bin_act=${encodeURIComponent(payloadReset)}`;
+        
         backdrop.style.display = 'flex';
     }
     
@@ -648,36 +668,8 @@ js_controller = """
         if (backdrop) backdrop.style.display = 'none';
     }
     
-    function submitAction(actionType) {
-        const activeBin = window.parent.__sentinel_active_bin;
-        if (!activeBin) return;
-        
-        // Optimistic UI update: instantly update bin color on screen in 0ms
-        const targetEl = window.parent.__sentinel_active_element;
-        if (targetEl) {
-            const spanClass = targetEl.classList.contains('span-2') ? 'span-2' : 'span-1';
-            if (actionType === 'RESTOCKED') {
-                targetEl.className = `bin-box status-blue ${spanClass}`;
-            } else if (actionType === 'OUT_OF_STOCK') {
-                targetEl.className = `bin-box status-purple ${spanClass}`;
-            } else if (actionType === 'RESET') {
-                const rawPct = parseFloat(targetEl.getAttribute('data-raw-pct') || '1.0');
-                let origStatus = 'green';
-                if (rawPct < 0.5) origStatus = 'red';
-                else if (rawPct < 1.0) origStatus = 'yellow';
-                targetEl.className = `bin-box status-${origStatus} ${spanClass}`;
-            }
-        }
-        
-        closeModal();
-        
-        const payload = `${actionType}:::${activeBin.shelf}_${activeBin.bin}:::${activeBin.med}:::${activeBin.rawPct}`;
-        window.parent.location.search = `?bin_act=${encodeURIComponent(payload)}`;
-    }
-    
     window.parent.__sentinel_openModal = openModal;
     window.parent.__sentinel_closeModal = closeModal;
-    window.parent.__sentinel_submitAction = submitAction;
     
     if (!parentDoc.__sentinel_listener_attached) {
         parentDoc.__sentinel_listener_attached = true;
@@ -723,22 +715,7 @@ js_controller = """
                 return;
             }
             
-            // 4. Action buttons
-            if (e.target.closest('#sentinel-act-restock')) {
-                e.preventDefault();
-                if (window.parent.__sentinel_submitAction) window.parent.__sentinel_submitAction('RESTOCKED');
-                return;
-            }
-            if (e.target.closest('#sentinel-act-oos')) {
-                e.preventDefault();
-                if (window.parent.__sentinel_submitAction) window.parent.__sentinel_submitAction('OUT_OF_STOCK');
-                return;
-            }
-            if (e.target.closest('#sentinel-act-reset')) {
-                e.preventDefault();
-                if (window.parent.__sentinel_submitAction) window.parent.__sentinel_submitAction('RESET');
-                return;
-            }
+            // 4. Action buttons: let native <a href="?bin_act=..."> navigation proceed to Python!
         });
         
         parentDoc.addEventListener('keydown', function(e) {
