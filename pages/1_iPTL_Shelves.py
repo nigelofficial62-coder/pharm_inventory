@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import io
-from components.shelf_grid import shelf_grid
+from st_click_detector import click_detector
 from utils.db import save_inventory_snapshot, fetch_latest_inventory, log_bin_action, fetch_active_overrides, remove_bin_action
 
 st.set_page_config(layout="wide", page_title="SENTINEL")
@@ -72,20 +72,22 @@ CSS_STRING = """
         transition: all 0.2s ease;
         color: #1e293b;
         user-select: none;
+        text-decoration: none !important;
     }
-    .bin-box:hover { transform: translateY(-1px); box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 10; }
+    .bin-box:hover { transform: translateY(-1px); box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 10; text-decoration: none !important; }
+    a.bin-box, a.bin-box:hover, a.bin-box:visited, a.bin-box:active { text-decoration: none !important; }
     
     .span-1 { grid-column: span 1; }
     .span-2 { grid-column: span 2; }
     
     /* Custom Color Palette based on Health % */
-    .status-green { background-color: #A1CCA6; }     /* >66% */
-    .status-yellow { background-color: #F9D779; }    /* 33-66% */
-    .status-red { background-color: #FCA47C; }       /* <33% */
-    .status-blue { background-color: #60A5FA; color: #ffffff; }
-    .status-purple { background-color: #c084fc; color: #ffffff; }
-    .status-overflow { background-color: #64748b; color: #ffffff; border: 1px solid #475569; }
-    .status-grey { background-color: #f1f5f9; color: #94a3b8; border: 1px solid #e2e8f0; box-shadow: none; }
+    .status-green { background-color: #A1CCA6; color: #1e293b !important; }     /* >66% */
+    .status-yellow { background-color: #F9D779; color: #1e293b !important; }    /* 33-66% */
+    .status-red { background-color: #FCA47C; color: #1e293b !important; }       /* <33% */
+    .status-blue { background-color: #60A5FA; color: #ffffff !important; }
+    .status-purple { background-color: #c084fc; color: #ffffff !important; }
+    .status-overflow { background-color: #64748b; color: #ffffff !important; border: 1px solid #475569; }
+    .status-grey { background-color: #f1f5f9; color: #94a3b8 !important; border: 1px solid #e2e8f0; box-shadow: none; cursor: default; }
     
     .tabletop {
         grid-column: span 8;
@@ -477,27 +479,24 @@ with tab1:
                                 status = "grey"
                                 tooltip = f"{shelf_name} - {bin_id}"
                                 
-                            html_grid += f"<div class='bin-box status-{status} {span_class}' title='{tooltip}' data-id='{shelf_name}_{bin_id}'>{bin_counter}</div>"
+                            if status in ['grey', 'overflow']:
+                                html_grid += f"<div class='bin-box status-{status} {span_class}' title='{tooltip}'>{bin_counter}</div>"
+                            else:
+                                html_grid += f"<a href='#' id='{shelf_name}_{bin_id}' class='bin-box status-{status} {span_class}' title='{tooltip}'>{bin_counter}</a>"
                             bin_counter += 1
                             
                     html_grid += "</div>"
                     
-                    clicked_data = shelf_grid(html_grid, css_string=CSS_STRING, key=f"grid_{shelf_name}")
+                    clicked_id = click_detector(CSS_STRING + html_grid, key=f"grid_{shelf_name}")
                     
-                    if clicked_data:
-                        clicked_id = clicked_data.get("id")
-                        click_ts = clicked_data.get("timestamp")
-                        last_click_key = f"last_click_{shelf_name}"
+                    if clicked_id:
+                        st.session_state[f"grid_{shelf_name}"] = ""
+                        shelf_str, bin_str = clicked_id.split('_')
+                        matching_row = df[(df['Shelf'] == shelf_str) & (df['Bin'] == bin_str)]
+                        med_name = matching_row.iloc[0]['Medication'] if not matching_row.empty else "Unknown Medication"
+                        health_pct = matching_row.iloc[0]['Health_Pct'] if not matching_row.empty else 0.0
                         
-                        if st.session_state.get(last_click_key) != click_ts:
-                            st.session_state[last_click_key] = click_ts
-                            
-                            shelf_str, bin_str = clicked_id.split('_')
-                            matching_row = df[(df['Shelf'] == shelf_str) & (df['Bin'] == bin_str)]
-                            med_name = matching_row.iloc[0]['Medication'] if not matching_row.empty else "Unknown Medication"
-                            health_pct = matching_row.iloc[0]['Health_Pct'] if not matching_row.empty else 0.0
-                            
-                            bin_action_modal(clicked_id, med_name, health_pct)
+                        bin_action_modal(clicked_id, med_name, health_pct)
 
 with tab2:
     if df is not None:
