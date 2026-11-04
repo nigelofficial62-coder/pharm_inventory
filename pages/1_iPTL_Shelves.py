@@ -5,6 +5,23 @@ from utils.db import save_inventory_snapshot, fetch_latest_inventory, log_bin_ac
 
 st.set_page_config(layout="wide", page_title="SENTINEL")
 
+# --- PROCESS BIN ACTION (Restock, Out of Stock, Reset) ---
+if "bin_act" in st.query_params:
+    action_payload = st.query_params.pop("bin_act")
+    if action_payload:
+        try:
+            parts = action_payload.split(':::')
+            if len(parts) == 4:
+                act_type, b_id, m_name, h_pct = parts
+                h_pct_val = float(h_pct) if h_pct else 0.0
+                if act_type == "RESET":
+                    remove_bin_action("iPTL", m_name, b_id, h_pct_val)
+                else:
+                    log_bin_action("iPTL", m_name, b_id, h_pct_val, act_type)
+        except Exception as e:
+            st.error(f"Failed to record action: {e}")
+    st.query_params.clear()
+
 if 'iptl_data' not in st.session_state and not st.session_state.get('force_upload', False):
     with st.spinner("Fetching latest inventory from database..."):
         try:
@@ -511,22 +528,7 @@ if 'iptl_data' in st.session_state:
 else:
     st.info("Awaiting Data. Please use the Manage Data menu above to upload an SSRS report to activate the shelves.")
 
-# Handle any direct action query param fallback if needed
-if "bin_act" in st.query_params:
-    action_payload = st.query_params.pop("bin_act")
-    if action_payload:
-        try:
-            parts = action_payload.split(':::')
-            if len(parts) == 4:
-                act_type, b_id, m_name, h_pct = parts
-                h_pct_val = float(h_pct) if h_pct else 0.0
-                if act_type == "RESET":
-                    remove_bin_action("iPTL", m_name, b_id, h_pct_val)
-                else:
-                    log_bin_action("iPTL", m_name, b_id, h_pct_val, act_type)
-        except Exception as e:
-            st.error(f"Failed to record action: {e}")
-        st.rerun()
+
 
 # --- CLIENT-SIDE INSTANT MODAL CONTAINER ---
 modal_html = """
@@ -616,15 +618,10 @@ with tab1:
                     
                     st.markdown(html_grid, unsafe_allow_html=True)
 
-# Client Controller Script (Handles instant client-side modal & direct Supabase action persistence)
-sb_url = st.secrets.get("supabase", {}).get("url", "")
-sb_key = st.secrets.get("supabase", {}).get("key", "")
-
+# Client Controller Script (Handles instant client-side modal & action dispatch)
 js_controller = """
 <script>
 (function() {
-    const SUPABASE_URL = "__SUPABASE_URL__";
-    const SUPABASE_KEY = "__SUPABASE_KEY__";
     const parentDoc = window.parent.document;
     
     function openModal(data, el) {
@@ -651,18 +648,6 @@ js_controller = """
         if (backdrop) backdrop.style.display = 'none';
     }
     
-    function getSingaporeISO() {
-        const d = new Date();
-        const sgTime = new Date(d.getTime() + (8 * 60 + d.getTimezoneOffset()) * 60000);
-        const pad = n => String(n).padStart(2, '0');
-        return sgTime.getFullYear() + '-' +
-               pad(sgTime.getMonth() + 1) + '-' +
-               pad(sgTime.getDate()) + 'T' +
-               pad(sgTime.getHours()) + ':' +
-               pad(sgTime.getMinutes()) + ':' +
-               pad(sgTime.getSeconds()) + '+08:00';
-    }
-    
     function submitAction(actionType) {
         const activeBin = window.parent.__sentinel_active_bin;
         if (!activeBin) return;
@@ -686,36 +671,8 @@ js_controller = """
         
         closeModal();
         
-        // Direct persistence to Supabase database via REST API
-        if (SUPABASE_URL && SUPABASE_KEY) {
-            const payload = {
-                created_at: getSingaporeISO(),
-                system_type: "iPTL",
-                medication_name: activeBin.med,
-                shelf_bin_id: `${activeBin.shelf}_${activeBin.bin}`,
-                health_at_time_of_restock: parseFloat(activeBin.rawPct || 0),
-                action_type: actionType
-            };
-            
-            fetch(`${SUPABASE_URL}/rest/v1/iptl_restock_actions`, {
-                method: "POST",
-                headers: {
-                    "apikey": SUPABASE_KEY,
-                    "Authorization": "Bearer " + SUPABASE_KEY,
-                    "Content-Type": "application/json",
-                    "Prefer": "return=minimal"
-                },
-                body: JSON.stringify(payload)
-            }).then(function(res) {
-                if (res.ok) {
-                    console.log("SENTINEL: Action persisted to Supabase successfully (" + actionType + ")");
-                } else {
-                    console.error("SENTINEL: Supabase HTTP error: " + res.status);
-                }
-            }).catch(function(err) {
-                console.error("SENTINEL: Supabase network error:", err);
-            });
-        }
+        const payload = `${actionType}:::${activeBin.shelf}_${activeBin.bin}:::${activeBin.med}:::${activeBin.rawPct}`;
+        window.parent.location.search = `?bin_act=${encodeURIComponent(payload)}`;
     }
     
     window.parent.__sentinel_openModal = openModal;
@@ -792,7 +749,7 @@ js_controller = """
     }
 })();
 </script>
-""".replace("__SUPABASE_URL__", sb_url).replace("__SUPABASE_KEY__", sb_key)
+"""
 
 st.components.v1.html(js_controller, height=0)
 
