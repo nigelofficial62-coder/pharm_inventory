@@ -121,16 +121,18 @@ CSS_STRING = """
     }
 
     /* Visually hide action trigger bridge offscreen without removing from render tree */
+    .st-key-bin_action_payload,
+    .st-key-bin_action_submit,
     div[data-testid="stElementContainer"]:has(input[aria-label="bin_action_payload"]),
     div[data-testid="stElementContainer"]:has(input[aria-label="bin_action_payload"]) + div[data-testid="stElementContainer"] {
         position: fixed !important;
-        left: -9999px !important;
-        top: -9999px !important;
+        bottom: 0 !important;
+        right: 0 !important;
         width: 1px !important;
         height: 1px !important;
-        opacity: 0 !important;
-        pointer-events: none !important;
+        opacity: 0.01 !important;
         overflow: hidden !important;
+        z-index: -100 !important;
     }
 
     /* Sentinel DOM Modal Backdrop & Dialog */
@@ -528,6 +530,11 @@ else:
 action_payload = st.text_input("bin_action_payload", key="bin_action_payload", label_visibility="collapsed")
 action_submitted = st.button("bin_action_submit", key="bin_action_submit")
 
+# Check query params as a reliable fallback
+if "bin_act" in st.query_params:
+    action_submitted = True
+    action_payload = st.query_params.pop("bin_act")
+
 if action_submitted and action_payload:
     try:
         parts = action_payload.split(':::')
@@ -637,8 +644,9 @@ st.components.v1.html("""
 (function() {
     const parentDoc = window.parent.document;
     
-    function openModal(data) {
+    function openModal(data, el) {
         window.parent.__sentinel_active_bin = data;
+        window.parent.__sentinel_active_element = el;
         const backdrop = parentDoc.getElementById('sentinel-bin-modal-backdrop');
         if (!backdrop) return;
         
@@ -663,26 +671,48 @@ st.components.v1.html("""
         const activeBin = window.parent.__sentinel_active_bin;
         if (!activeBin) return;
         
-        const input = parentDoc.querySelector('input[aria-label="bin_action_payload"]');
-        const submitBtn = Array.from(parentDoc.querySelectorAll('button')).find(b => b.innerText.trim() === 'bin_action_submit');
-        
-        if (!input || !submitBtn) {
-            console.error("Sentinel action bridge elements not found");
-            return;
+        // Optimistic UI update: instantly update bin color on screen in 0ms
+        const targetEl = window.parent.__sentinel_active_element;
+        if (targetEl) {
+            const spanClass = targetEl.classList.contains('span-2') ? 'span-2' : 'span-1';
+            if (actionType === 'RESTOCKED') {
+                targetEl.className = `bin-box status-blue ${spanClass}`;
+            } else if (actionType === 'OUT_OF_STOCK') {
+                targetEl.className = `bin-box status-purple ${spanClass}`;
+            } else if (actionType === 'RESET') {
+                const rawPct = parseFloat(targetEl.getAttribute('data-raw-pct') || '1.0');
+                let origStatus = 'green';
+                if (rawPct < 0.5) origStatus = 'red';
+                else if (rawPct < 1.0) origStatus = 'yellow';
+                targetEl.className = `bin-box status-${origStatus} ${spanClass}`;
+            }
         }
         
-        const payload = `${actionType}:::${activeBin.shelf}_${activeBin.bin}:::${activeBin.med}:::${activeBin.rawPct}`;
         closeModal();
         
-        const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
-        nativeInputValueSetter.call(input, payload);
-        input.dispatchEvent(new Event('input', { bubbles: true }));
-        input.dispatchEvent(new Event('change', { bubbles: true }));
-        input.dispatchEvent(new Event('blur', { bubbles: true }));
+        const payload = `${actionType}:::${activeBin.shelf}_${activeBin.bin}:::${activeBin.med}:::${activeBin.rawPct}`;
         
-        setTimeout(() => {
-            submitBtn.click();
-        }, 20);
+        const input = parentDoc.querySelector('.st-key-bin_action_payload input') 
+                   || parentDoc.querySelector('input[aria-label="bin_action_payload"]');
+        const submitBtn = parentDoc.querySelector('.st-key-bin_action_submit button') 
+                      || parentDoc.querySelector('div[data-testid="stButton"] button');
+        
+        if (input) {
+            const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
+            nativeInputValueSetter.call(input, payload);
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+            input.dispatchEvent(new Event('blur', { bubbles: true }));
+        }
+        
+        if (submitBtn) {
+            setTimeout(() => {
+                submitBtn.click();
+            }, 30);
+        } else {
+            // Reliable fallback
+            window.parent.location.search = `?bin_act=${encodeURIComponent(payload)}`;
+        }
     }
     
     window.parent.__sentinel_openModal = openModal;
@@ -713,7 +743,7 @@ st.components.v1.html("""
                             target: binBox.getAttribute('data-target') || '0',
                             pct: binBox.getAttribute('data-pct') || '0',
                             rawPct: binBox.getAttribute('data-raw-pct') || '0'
-                        });
+                        }, binBox);
                     }
                     return;
                 }
