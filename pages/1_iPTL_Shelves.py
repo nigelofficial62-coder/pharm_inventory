@@ -137,64 +137,149 @@ CSS_STRING = """
         color: #097C87;
     }
 
-    /* Style Streamlit Native Dialog (@st.dialog) */
-    div[data-testid="stDialog"] > div[role="dialog"] {
-        border-radius: 12px !important;
-        padding: 24px !important;
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1) !important;
-        border: 1px solid #e2e8f0 !important;
-        width: 480px !important;
-        max-width: 90vw !important;
+    /* Sentinel DOM Modal Backdrop & Dialog */
+    .sentinel-modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(15, 23, 42, 0.65);
+        backdrop-filter: blur(2px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999999;
     }
-    div[data-testid="stDialog"] header {
-        padding-bottom: 0px !important;
-        margin-bottom: -15px !important;
+    
+    .sentinel-modal-dialog {
+        background-color: #ffffff;
+        border-radius: 12px;
+        padding: 24px;
+        width: 460px;
+        max-width: 90vw;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+        position: relative;
+        border: 1px solid #e2e8f0;
+        text-align: center;
+        animation: sentinelModalFadeIn 0.15s ease-out;
     }
-    div[data-testid="stDialog"] header h2 {
-        display: none !important;
+    
+    @keyframes sentinelModalFadeIn {
+        from { opacity: 0; transform: scale(0.96); }
+        to { opacity: 1; transform: scale(1); }
     }
-
-    div.st-key-btn_dlg_restock button {
+    
+    .sentinel-modal-close {
+        position: absolute;
+        top: 12px;
+        right: 14px;
+        background: transparent;
+        border: none;
+        font-size: 1.2rem;
+        color: #94a3b8;
+        cursor: pointer;
+        font-weight: 700;
+        line-height: 1;
+        padding: 4px 8px;
+        border-radius: 4px;
+        transition: all 0.15s ease;
+    }
+    .sentinel-modal-close:hover {
+        color: #0f172a;
+        background-color: #f1f5f9;
+    }
+    
+    .sentinel-modal-badge {
+        display: inline-block;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        color: #64748b;
+        background-color: #f1f5f9;
+        padding: 4px 10px;
+        border-radius: 9999px;
+        margin-bottom: 12px;
+        text-transform: uppercase;
+    }
+    
+    .sentinel-modal-med {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: #097C87;
+        margin-bottom: 8px;
+        font-family: 'Inter', sans-serif;
+        line-height: 1.3;
+    }
+    
+    .sentinel-modal-stock {
+        font-size: 0.95rem;
+        color: #475569;
+        margin-bottom: 24px;
+    }
+    
+    .sentinel-modal-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 10px;
+    }
+    
+    .sentinel-action-btn {
+        border-radius: 6px;
+        padding: 10px 14px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        border: none;
+        outline: none;
+        font-family: inherit;
+        text-decoration: none !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        user-select: none;
+    }
+    .sentinel-action-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        text-decoration: none !important;
+    }
+    .sentinel-action-btn:active, .sentinel-action-btn:focus, .sentinel-action-btn:visited {
+        transform: translateY(0);
+        outline: none;
+        text-decoration: none !important;
+    }
+    
+    .btn-restock, .btn-restock:visited, .btn-restock:hover, .btn-restock:active {
         background-color: #60A5FA !important;
-        border-color: #60A5FA !important;
         color: #ffffff !important;
-        font-weight: 600 !important;
-        transition: all 0.15s ease !important;
+        border: 1px solid #60A5FA !important;
     }
-    div.st-key-btn_dlg_restock button:hover {
+    .btn-restock:hover {
         background-color: #3b82f6 !important;
         border-color: #3b82f6 !important;
-        transform: translateY(-1px) !important;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
     }
-
-    div.st-key-btn_dlg_oos button {
+    
+    .btn-oos, .btn-oos:visited, .btn-oos:hover, .btn-oos:active {
         background-color: #c084fc !important;
-        border-color: #c084fc !important;
         color: #ffffff !important;
-        font-weight: 600 !important;
-        transition: all 0.15s ease !important;
+        border: 1px solid #c084fc !important;
     }
-    div.st-key-btn_dlg_oos button:hover {
+    .btn-oos:hover {
         background-color: #a855f7 !important;
         border-color: #a855f7 !important;
-        transform: translateY(-1px) !important;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
     }
-
-    div.st-key-btn_dlg_reset button {
+    
+    .btn-reset, .btn-reset:visited, .btn-reset:hover, .btn-reset:active {
         background-color: #f8fafc !important;
-        border-color: #cbd5e1 !important;
         color: #64748b !important;
-        font-weight: 600 !important;
-        transition: all 0.15s ease !important;
+        border: 1px solid #cbd5e1 !important;
     }
-    div.st-key-btn_dlg_reset button:hover {
+    .btn-reset:hover {
         background-color: #f1f5f9 !important;
-        border-color: #94a3b8 !important;
         color: #334155 !important;
-        transform: translateY(-1px) !important;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+        border-color: #94a3b8 !important;
     }
 </style>
 """
@@ -455,64 +540,23 @@ else:
 
 
 
-# --- NATIVE DIALOG MODAL ---
-@st.dialog(" ")
-def bin_action_dialog(shelf_name, bin_id, med_name, stock, target, pct, raw_pct):
-    st.markdown(f"""
-    <div style="text-align: center; margin-bottom: 24px;">
-        <div style="display: inline-block; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; color: #64748b; background-color: #f1f5f9; padding: 4px 12px; border-radius: 9999px; text-transform: uppercase; margin-bottom: 12px;">
-            {shelf_name} · {bin_id}
-        </div>
-        <div style="font-size: 1.25rem; font-weight: 800; color: #097C87; margin-bottom: 8px; font-family: 'Inter', sans-serif; line-height: 1.3;">
-            {med_name}
-        </div>
-        <div style="font-size: 0.95rem; color: #475569;">
-            Current Stock: <b>{stock}</b> / {target} ({pct}%)
+# --- CLIENT-SIDE INSTANT MODAL CONTAINER ---
+modal_html = """
+<div id="sentinel-bin-modal-backdrop" class="sentinel-modal-backdrop" style="display: none;">
+    <div class="sentinel-modal-dialog">
+        <button id="sentinel-modal-close" class="sentinel-modal-close" aria-label="Close">✕</button>
+        <div id="sentinel-modal-badge" class="sentinel-modal-badge">SHELF · BIN</div>
+        <div id="sentinel-modal-med" class="sentinel-modal-med">Medication Name</div>
+        <div id="sentinel-modal-stock" class="sentinel-modal-stock">Current Stock</div>
+        <div class="sentinel-modal-actions">
+            <a id="sentinel-act-restock" href="#" target="_self" class="sentinel-action-btn btn-restock">Restock</a>
+            <a id="sentinel-act-oos" href="#" target="_self" class="sentinel-action-btn btn-oos">Out of Stock</a>
+            <a id="sentinel-act-reset" href="#" target="_self" class="sentinel-action-btn btn-reset">Reset</a>
         </div>
     </div>
-    """, unsafe_allow_html=True)
-    
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        if st.button("Restock", type="primary", use_container_width=True, key="btn_dlg_restock"):
-            try:
-                log_bin_action("iPTL", med_name, f"{shelf_name}_{bin_id}", raw_pct, "RESTOCKED")
-                st.rerun()
-            except Exception as e:
-                st.error(f"Failed to record restock: {e}")
-                
-    with col2:
-        if st.button("Out of Stock", use_container_width=True, key="btn_dlg_oos"):
-            try:
-                log_bin_action("iPTL", med_name, f"{shelf_name}_{bin_id}", raw_pct, "OUT_OF_STOCK")
-                st.rerun()
-            except Exception as e:
-                st.error(f"Failed to record out of stock: {e}")
-                
-    with col3:
-        if st.button("Reset", use_container_width=True, key="btn_dlg_reset"):
-            try:
-                remove_bin_action("iPTL", med_name, f"{shelf_name}_{bin_id}", raw_pct)
-                st.rerun()
-            except Exception as e:
-                st.error(f"Failed to reset bin: {e}")
-
-# Check if a bin modal was requested via query parameter
-if "open_bin" in st.query_params and df is not None and not df.empty:
-    target_bin = st.query_params.pop("open_bin")
-    if target_bin:
-        try:
-            s_name, b_num = target_bin.split(':::')
-            match = df[(df['Shelf'] == s_name) & (df['Bin'] == b_num)]
-            if not match.empty:
-                m_name = match.iloc[0]['Medication']
-                c_stock = int(match.iloc[0]['Current_Stock'])
-                t_level = int(match.iloc[0]['Target_Level'])
-                h_pct_int = int(match.iloc[0]['Health_Pct'] * 100)
-                h_pct_raw = float(match.iloc[0]['Health_Pct'])
-                bin_action_dialog(s_name, b_num, m_name, c_stock, t_level, h_pct_int, h_pct_raw)
-        except Exception as e:
-            st.error(f"Error opening bin action: {e}")
+</div>
+"""
+st.markdown(modal_html, unsafe_allow_html=True)
 
 # --- TABS ---
 tab1, tab2 = st.tabs(["iPTL Shelves Overview", "iPTL Restock Action List"])
@@ -565,16 +609,123 @@ with tab1:
                             if status in ['grey', 'overflow']:
                                 html_grid += f"<div class='bin-box status-{status} {span_class}' title='{tooltip}'>{bin_counter}</div>"
                             else:
+                                clean_med = str(med).replace("'", "&#39;").replace('"', "&quot;")
+                                raw_pct = float(row.iloc[0]['Health_Pct']) if df is not None and not row.empty else 0.0
                                 html_grid += (
-                                    f"<a href='?open_bin={shelf_name}:::{bin_id}' target='_self' "
-                                    f"class='bin-box status-{status} {span_class}' "
-                                    f"title='{tooltip}'>{bin_counter}</a>"
+                                    f"<div class='bin-box status-{status} {span_class}' "
+                                    f"data-shelf='{shelf_name}' "
+                                    f"data-bin='{bin_id}' "
+                                    f"data-med='{clean_med}' "
+                                    f"data-stock='{stock}' "
+                                    f"data-target='{target}' "
+                                    f"data-pct='{pct}' "
+                                    f"data-raw-pct='{raw_pct:.4f}' "
+                                    f"title='{tooltip}'>{bin_counter}</div>"
                                 )
                             bin_counter += 1
                             
                     html_grid += "</div>"
                     
                     st.markdown(html_grid, unsafe_allow_html=True)
+
+# Client Controller Script (Handles instant 0ms client-side modal pop-up & direct action navigation)
+js_controller = """
+<script>
+(function() {
+    const parentDoc = window.parent.document;
+    if (!parentDoc) return;
+    
+    function openModal(data) {
+        const backdrop = parentDoc.getElementById('sentinel-bin-modal-backdrop');
+        if (!backdrop) return;
+        
+        const badge = parentDoc.getElementById('sentinel-modal-badge');
+        const med = parentDoc.getElementById('sentinel-modal-med');
+        const stock = parentDoc.getElementById('sentinel-modal-stock');
+        
+        if (badge) badge.innerText = `${data.shelf} · ${data.bin}`;
+        if (med) med.innerText = data.med;
+        if (stock) stock.innerHTML = `Current Stock: <b>${data.stock}</b> / ${data.target} (${data.pct}%)`;
+        
+        // Populate action links with exact query parameters for native top-level navigation
+        const restockLink = parentDoc.getElementById('sentinel-act-restock');
+        const oosLink = parentDoc.getElementById('sentinel-act-oos');
+        const resetLink = parentDoc.getElementById('sentinel-act-reset');
+        
+        const payloadRestock = `RESTOCKED:::${data.shelf}_${data.bin}:::${data.med}:::${data.rawPct}`;
+        const payloadOos = `OUT_OF_STOCK:::${data.shelf}_${data.bin}:::${data.med}:::${data.rawPct}`;
+        const payloadReset = `RESET:::${data.shelf}_${data.bin}:::${data.med}:::${data.rawPct}`;
+        
+        if (restockLink) restockLink.href = `?bin_act=${encodeURIComponent(payloadRestock)}`;
+        if (oosLink) oosLink.href = `?bin_act=${encodeURIComponent(payloadOos)}`;
+        if (resetLink) resetLink.href = `?bin_act=${encodeURIComponent(payloadReset)}`;
+        
+        backdrop.style.display = 'flex';
+    }
+    
+    function closeModal() {
+        const backdrop = parentDoc.getElementById('sentinel-bin-modal-backdrop');
+        if (backdrop) backdrop.style.display = 'none';
+    }
+    
+    window.parent.__sentinel_openModal = openModal;
+    window.parent.__sentinel_closeModal = closeModal;
+    
+    if (!parentDoc.__sentinel_listener_attached) {
+        parentDoc.__sentinel_listener_attached = true;
+        
+        parentDoc.addEventListener('click', function(e) {
+            // 1. Bin box clicked
+            const binBox = e.target.closest('.bin-box');
+            if (binBox) {
+                if (binBox.classList.contains('status-grey') || binBox.classList.contains('status-overflow')) {
+                    return;
+                }
+                const shelf = binBox.getAttribute('data-shelf');
+                const bin = binBox.getAttribute('data-bin');
+                if (shelf && bin) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (window.parent.__sentinel_openModal) {
+                        window.parent.__sentinel_openModal({
+                            shelf: shelf,
+                            bin: bin,
+                            med: binBox.getAttribute('data-med') || '',
+                            stock: binBox.getAttribute('data-stock') || '0',
+                            target: binBox.getAttribute('data-target') || '0',
+                            pct: binBox.getAttribute('data-pct') || '0',
+                            rawPct: binBox.getAttribute('data-raw-pct') || '0'
+                        });
+                    }
+                    return;
+                }
+            }
+            
+            // 2. Close button clicked
+            if (e.target.closest('#sentinel-modal-close')) {
+                e.preventDefault();
+                if (window.parent.__sentinel_closeModal) window.parent.__sentinel_closeModal();
+                return;
+            }
+            
+            // 3. Clicked on dark backdrop outside dialog
+            if (e.target.id === 'sentinel-bin-modal-backdrop') {
+                e.preventDefault();
+                if (window.parent.__sentinel_closeModal) window.parent.__sentinel_closeModal();
+                return;
+            }
+        });
+        
+        parentDoc.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                if (window.parent.__sentinel_closeModal) window.parent.__sentinel_closeModal();
+            }
+        });
+    }
+})();
+</script>
+"""
+st.components.v1.html(js_controller, height=0)
 
 with tab2:
     if df is not None:
