@@ -23,6 +23,11 @@ def process_action_payload(payload_str):
         st.error(f"Failed to record action: {e}")
     return False
 
+# Safely reset action payload before widget instantiation
+if st.session_state.get("_reset_bin_action"):
+    st.session_state["bin_action_payload"] = ""
+    st.session_state["_reset_bin_action"] = False
+
 # Hidden action bridge widgets (WebSocket communication without page reload)
 action_payload = st.text_input("bin_action_payload", key="bin_action_payload", label_visibility="collapsed")
 action_submitted = st.button("bin_action_submit", key="bin_action_submit")
@@ -34,7 +39,7 @@ target_payload = action_payload if (action_submitted and action_payload) else qp
 
 if target_payload:
     process_action_payload(target_payload)
-    st.session_state["bin_action_payload"] = ""
+    st.session_state["_reset_bin_action"] = True
     st.query_params.clear()
     st.rerun()
 
