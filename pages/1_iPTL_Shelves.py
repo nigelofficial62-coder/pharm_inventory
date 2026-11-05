@@ -137,149 +137,64 @@ CSS_STRING = """
         color: #097C87;
     }
 
-    /* Sentinel DOM Modal Backdrop & Dialog */
-    .sentinel-modal-backdrop {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background-color: rgba(15, 23, 42, 0.65);
-        backdrop-filter: blur(2px);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 9999999;
+    /* Style Streamlit Native Dialog (@st.dialog) */
+    div[data-testid="stDialog"] > div[role="dialog"] {
+        border-radius: 12px !important;
+        padding: 24px !important;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1) !important;
+        border: 1px solid #e2e8f0 !important;
+        width: 480px !important;
+        max-width: 90vw !important;
     }
-    
-    .sentinel-modal-dialog {
-        background-color: #ffffff;
-        border-radius: 12px;
-        padding: 24px;
-        width: 460px;
-        max-width: 90vw;
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
-        position: relative;
-        border: 1px solid #e2e8f0;
-        text-align: center;
-        animation: sentinelModalFadeIn 0.15s ease-out;
+    div[data-testid="stDialog"] header {
+        padding-bottom: 0px !important;
+        margin-bottom: -15px !important;
     }
-    
-    @keyframes sentinelModalFadeIn {
-        from { opacity: 0; transform: scale(0.96); }
-        to { opacity: 1; transform: scale(1); }
+    div[data-testid="stDialog"] header h2 {
+        display: none !important;
     }
-    
-    .sentinel-modal-close {
-        position: absolute;
-        top: 12px;
-        right: 14px;
-        background: transparent;
-        border: none;
-        font-size: 1.2rem;
-        color: #94a3b8;
-        cursor: pointer;
-        font-weight: 700;
-        line-height: 1;
-        padding: 4px 8px;
-        border-radius: 4px;
-        transition: all 0.15s ease;
+
+    div.st-key-btn_dlg_restock button {
+        background-color: #60A5FA !important;
+        border-color: #60A5FA !important;
+        color: #ffffff !important;
+        font-weight: 600 !important;
+        transition: all 0.15s ease !important;
     }
-    .sentinel-modal-close:hover {
-        color: #0f172a;
-        background-color: #f1f5f9;
+    div.st-key-btn_dlg_restock button:hover {
+        background-color: #3b82f6 !important;
+        border-color: #3b82f6 !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
     }
-    
-    .sentinel-modal-badge {
-        display: inline-block;
-        font-size: 0.75rem;
-        font-weight: 700;
-        letter-spacing: 0.05em;
-        color: #64748b;
-        background-color: #f1f5f9;
-        padding: 4px 10px;
-        border-radius: 9999px;
-        margin-bottom: 12px;
-        text-transform: uppercase;
+
+    div.st-key-btn_dlg_oos button {
+        background-color: #c084fc !important;
+        border-color: #c084fc !important;
+        color: #ffffff !important;
+        font-weight: 600 !important;
+        transition: all 0.15s ease !important;
     }
-    
-    .sentinel-modal-med {
-        font-size: 1.25rem;
-        font-weight: 800;
-        color: #097C87;
-        margin-bottom: 8px;
-        font-family: 'Inter', sans-serif;
-        line-height: 1.3;
+    div.st-key-btn_dlg_oos button:hover {
+        background-color: #a855f7 !important;
+        border-color: #a855f7 !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
     }
-    
-    .sentinel-modal-stock {
-        font-size: 0.95rem;
-        color: #475569;
-        margin-bottom: 24px;
+
+    div.st-key-btn_dlg_reset button {
+        background-color: #f8fafc !important;
+        border-color: #cbd5e1 !important;
+        color: #64748b !important;
+        font-weight: 600 !important;
+        transition: all 0.15s ease !important;
     }
-    
-    .sentinel-modal-actions {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        gap: 10px;
-    }
-    
-    .sentinel-action-btn {
-        border-radius: 6px;
-        padding: 10px 14px;
-        font-size: 0.9rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.15s ease;
-        border: none;
-        outline: none;
-        font-family: inherit;
-        text-decoration: none !important;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        user-select: none;
-    }
-    .sentinel-action-btn:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        text-decoration: none !important;
-    }
-    .sentinel-action-btn:active, .sentinel-action-btn:focus {
-        transform: translateY(0);
-        outline: none;
-        text-decoration: none !important;
-    }
-    
-    .btn-restock {
-        background-color: #60A5FA;
-        color: #ffffff;
-        border-color: #60A5FA;
-    }
-    .btn-restock:hover {
-        background-color: #3b82f6;
-        border-color: #3b82f6;
-    }
-    
-    .btn-oos {
-        background-color: #c084fc;
-        color: #ffffff;
-        border-color: #c084fc;
-    }
-    .btn-oos:hover {
-        background-color: #a855f7;
-        border-color: #a855f7;
-    }
-    
-    .btn-reset {
-        background-color: #f8fafc;
-        color: #64748b;
-        border-color: #cbd5e1;
-    }
-    .btn-reset:hover {
-        background-color: #f1f5f9;
-        color: #334155;
-        border-color: #94a3b8;
+    div.st-key-btn_dlg_reset button:hover {
+        background-color: #f1f5f9 !important;
+        border-color: #94a3b8 !important;
+        color: #334155 !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
     }
 </style>
 """
@@ -540,23 +455,64 @@ else:
 
 
 
-# --- CLIENT-SIDE INSTANT MODAL CONTAINER ---
-modal_html = """
-<div id="sentinel-bin-modal-backdrop" class="sentinel-modal-backdrop" style="display: none;">
-    <div class="sentinel-modal-dialog">
-        <button id="sentinel-modal-close" class="sentinel-modal-close" aria-label="Close">✕</button>
-        <div id="sentinel-modal-badge" class="sentinel-modal-badge">SHELF · BIN</div>
-        <div id="sentinel-modal-med" class="sentinel-modal-med">Medication Name</div>
-        <div id="sentinel-modal-stock" class="sentinel-modal-stock">Current Stock</div>
-        <div class="sentinel-modal-actions">
-            <button type="button" id="sentinel-act-restock" class="sentinel-action-btn btn-restock">Restock</button>
-            <button type="button" id="sentinel-act-oos" class="sentinel-action-btn btn-oos">Out of Stock</button>
-            <button type="button" id="sentinel-act-reset" class="sentinel-action-btn btn-reset">Reset</button>
+# --- NATIVE DIALOG MODAL ---
+@st.dialog(" ")
+def bin_action_dialog(shelf_name, bin_id, med_name, stock, target, pct, raw_pct):
+    st.markdown(f"""
+    <div style="text-align: center; margin-bottom: 24px;">
+        <div style="display: inline-block; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; color: #64748b; background-color: #f1f5f9; padding: 4px 12px; border-radius: 9999px; text-transform: uppercase; margin-bottom: 12px;">
+            {shelf_name} · {bin_id}
+        </div>
+        <div style="font-size: 1.25rem; font-weight: 800; color: #097C87; margin-bottom: 8px; font-family: 'Inter', sans-serif; line-height: 1.3;">
+            {med_name}
+        </div>
+        <div style="font-size: 0.95rem; color: #475569;">
+            Current Stock: <b>{stock}</b> / {target} ({pct}%)
         </div>
     </div>
-</div>
-"""
-st.markdown(modal_html, unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        if st.button("Restock", type="primary", use_container_width=True, key="btn_dlg_restock"):
+            try:
+                log_bin_action("iPTL", med_name, f"{shelf_name}_{bin_id}", raw_pct, "RESTOCKED")
+                st.rerun()
+            except Exception as e:
+                st.error(f"Failed to record restock: {e}")
+                
+    with col2:
+        if st.button("Out of Stock", use_container_width=True, key="btn_dlg_oos"):
+            try:
+                log_bin_action("iPTL", med_name, f"{shelf_name}_{bin_id}", raw_pct, "OUT_OF_STOCK")
+                st.rerun()
+            except Exception as e:
+                st.error(f"Failed to record out of stock: {e}")
+                
+    with col3:
+        if st.button("Reset", use_container_width=True, key="btn_dlg_reset"):
+            try:
+                remove_bin_action("iPTL", med_name, f"{shelf_name}_{bin_id}", raw_pct)
+                st.rerun()
+            except Exception as e:
+                st.error(f"Failed to reset bin: {e}")
+
+# Check if a bin modal was requested via query parameter
+if "open_bin" in st.query_params and df is not None and not df.empty:
+    target_bin = st.query_params.pop("open_bin")
+    if target_bin:
+        try:
+            s_name, b_num = target_bin.split(':::')
+            match = df[(df['Shelf'] == s_name) & (df['Bin'] == b_num)]
+            if not match.empty:
+                m_name = match.iloc[0]['Medication']
+                c_stock = int(match.iloc[0]['Current_Stock'])
+                t_level = int(match.iloc[0]['Target_Level'])
+                h_pct_int = int(match.iloc[0]['Health_Pct'] * 100)
+                h_pct_raw = float(match.iloc[0]['Health_Pct'])
+                bin_action_dialog(s_name, b_num, m_name, c_stock, t_level, h_pct_int, h_pct_raw)
+        except Exception as e:
+            st.error(f"Error opening bin action: {e}")
 
 # --- TABS ---
 tab1, tab2 = st.tabs(["iPTL Shelves Overview", "iPTL Restock Action List"])
@@ -609,223 +565,16 @@ with tab1:
                             if status in ['grey', 'overflow']:
                                 html_grid += f"<div class='bin-box status-{status} {span_class}' title='{tooltip}'>{bin_counter}</div>"
                             else:
-                                clean_med = str(med).replace("'", "&#39;").replace('"', "&quot;")
-                                raw_pct = float(row.iloc[0]['Health_Pct']) if df is not None and not row.empty else 0.0
                                 html_grid += (
-                                    f"<div class='bin-box status-{status} {span_class}' "
-                                    f"data-shelf='{shelf_name}' "
-                                    f"data-bin='{bin_id}' "
-                                    f"data-med='{clean_med}' "
-                                    f"data-stock='{stock}' "
-                                    f"data-target='{target}' "
-                                    f"data-pct='{pct}' "
-                                    f"data-raw-pct='{raw_pct:.4f}' "
-                                    f"title='{tooltip}'>{bin_counter}</div>"
+                                    f"<a href='?open_bin={shelf_name}:::{bin_id}' target='_self' "
+                                    f"class='bin-box status-{status} {span_class}' "
+                                    f"title='{tooltip}'>{bin_counter}</a>"
                                 )
                             bin_counter += 1
                             
                     html_grid += "</div>"
                     
                     st.markdown(html_grid, unsafe_allow_html=True)
-
-# Client Controller Script (Handles instant client-side modal & direct Supabase action persistence)
-sb_url = st.secrets.get("supabase", {}).get("url", "")
-sb_key = st.secrets.get("supabase", {}).get("key", "")
-
-js_controller = """
-<script>
-(function() {
-    const SUPABASE_URL = "__SUPABASE_URL__";
-    const SUPABASE_KEY = "__SUPABASE_KEY__";
-    const parentDoc = window.parent.document;
-    
-    function openModal(data, el) {
-        window.parent.__sentinel_active_bin = data;
-        window.parent.__sentinel_active_element = el;
-        const backdrop = parentDoc.getElementById('sentinel-bin-modal-backdrop');
-        if (!backdrop) return;
-        
-        const badge = parentDoc.getElementById('sentinel-modal-badge');
-        const med = parentDoc.getElementById('sentinel-modal-med');
-        const stock = parentDoc.getElementById('sentinel-modal-stock');
-        
-        if (badge) badge.innerText = `${data.shelf} · ${data.bin}`;
-        if (med) med.innerText = data.med;
-        if (stock) stock.innerHTML = `Current Stock: <b>${data.stock}</b> / ${data.target} (${data.pct}%)`;
-        
-        backdrop.style.display = 'flex';
-    }
-    
-    function closeModal() {
-        window.parent.__sentinel_active_bin = null;
-        window.parent.__sentinel_active_element = null;
-        const backdrop = parentDoc.getElementById('sentinel-bin-modal-backdrop');
-        if (backdrop) backdrop.style.display = 'none';
-    }
-    
-    function getSingaporeISO() {
-        const d = new Date();
-        const sgTime = new Date(d.getTime() + (8 * 60 + d.getTimezoneOffset()) * 60000);
-        const pad = n => String(n).padStart(2, '0');
-        return sgTime.getFullYear() + '-' +
-               pad(sgTime.getMonth() + 1) + '-' +
-               pad(sgTime.getDate()) + 'T' +
-               pad(sgTime.getHours()) + ':' +
-               pad(sgTime.getMinutes()) + ':' +
-               pad(sgTime.getSeconds()) + '+08:00';
-    }
-    
-    function submitBinAction(actionType) {
-        const activeBin = window.parent.__sentinel_active_bin;
-        if (!activeBin) return;
-        
-        // 1. Optimistic UI update on the clicked bin (instant visual feedback with 0ms delay)
-        const targetEl = window.parent.__sentinel_active_element;
-        if (targetEl) {
-            const spanClass = targetEl.classList.contains('span-2') ? 'span-2' : 'span-1';
-            if (actionType === 'RESTOCKED') {
-                targetEl.className = `bin-box status-blue ${spanClass}`;
-            } else if (actionType === 'OUT_OF_STOCK') {
-                targetEl.className = `bin-box status-purple ${spanClass}`;
-            } else if (actionType === 'RESET') {
-                const rawPct = parseFloat(targetEl.getAttribute('data-raw-pct') || '1.0');
-                let origStatus = 'green';
-                if (rawPct < 0.5) origStatus = 'red';
-                else if (rawPct < 1.0) origStatus = 'yellow';
-                targetEl.className = `bin-box status-${origStatus} ${spanClass}`;
-            }
-        }
-        
-        // Close modal dialog immediately
-        closeModal();
-        
-        // 2. Direct persistence to Supabase REST API (ZERO full browser reload, works on cloud & localhost)
-        const fetchFn = (window.parent && window.parent.fetch) ? window.parent.fetch.bind(window.parent) : window.fetch;
-        
-        const payload = {
-            created_at: getSingaporeISO(),
-            system_type: "iPTL",
-            medication_name: activeBin.med,
-            shelf_bin_id: `${activeBin.shelf}_${activeBin.bin}`,
-            health_at_time_of_restock: parseFloat(activeBin.rawPct || 0),
-            action_type: actionType
-        };
-        
-        if (SUPABASE_URL && SUPABASE_KEY) {
-            fetchFn(`${SUPABASE_URL}/rest/v1/iptl_restock_actions`, {
-                method: "POST",
-                headers: {
-                    "apikey": SUPABASE_KEY,
-                    "Authorization": "Bearer " + SUPABASE_KEY,
-                    "Content-Type": "application/json",
-                    "Prefer": "return=minimal"
-                },
-                body: JSON.stringify(payload)
-            }).then(function(res) {
-                if (res.ok) {
-                    console.log("SENTINEL: Restock recorded in Supabase successfully (" + actionType + ")");
-                } else {
-                    console.warn("SENTINEL: Supabase returned " + res.status + ", falling back to query param");
-                    window.parent.location.search = `?bin_act=${encodeURIComponent(actionType + ':::' + activeBin.shelf + '_' + activeBin.bin + ':::' + activeBin.med + ':::' + activeBin.rawPct)}`;
-                }
-            }).catch(function(err) {
-                console.warn("SENTINEL: Fetch failed, using query fallback:", err);
-                window.parent.location.search = `?bin_act=${encodeURIComponent(actionType + ':::' + activeBin.shelf + '_' + activeBin.bin + ':::' + activeBin.med + ':::' + activeBin.rawPct)}`;
-            });
-        }
-    }
-    
-    window.parent.__sentinel_openModal = openModal;
-    window.parent.__sentinel_closeModal = closeModal;
-    window.parent.__sentinel_submitBinAction = submitBinAction;
-    
-    if (!parentDoc.__sentinel_listener_attached) {
-        parentDoc.__sentinel_listener_attached = true;
-        
-        parentDoc.addEventListener('click', function(e) {
-            // 1. Bin box clicked
-            const binBox = e.target.closest('.bin-box');
-            if (binBox) {
-                if (binBox.classList.contains('status-grey') || binBox.classList.contains('status-overflow')) {
-                    return;
-                }
-                const shelf = binBox.getAttribute('data-shelf');
-                const bin = binBox.getAttribute('data-bin');
-                if (shelf && bin) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (window.parent.__sentinel_openModal) {
-                        window.parent.__sentinel_openModal({
-                            shelf: shelf,
-                            bin: bin,
-                            med: binBox.getAttribute('data-med') || '',
-                            stock: binBox.getAttribute('data-stock') || '0',
-                            target: binBox.getAttribute('data-target') || '0',
-                            pct: binBox.getAttribute('data-pct') || '0',
-                            rawPct: binBox.getAttribute('data-raw-pct') || '0'
-                        }, binBox);
-                    }
-                    return;
-                }
-            }
-            
-            // 2. Close button clicked
-            if (e.target.closest('#sentinel-modal-close')) {
-                e.preventDefault();
-                if (window.parent.__sentinel_closeModal) window.parent.__sentinel_closeModal();
-                return;
-            }
-            
-            // 3. Clicked on dark backdrop outside dialog
-            if (e.target.id === 'sentinel-bin-modal-backdrop') {
-                e.preventDefault();
-                if (window.parent.__sentinel_closeModal) window.parent.__sentinel_closeModal();
-                return;
-            }
-            
-            // 4. Action buttons clicked
-            const restockBtn = e.target.closest('#sentinel-act-restock');
-            if (restockBtn) {
-                e.preventDefault();
-                e.stopPropagation();
-                if (window.parent.__sentinel_submitBinAction) {
-                    window.parent.__sentinel_submitBinAction('RESTOCKED');
-                }
-                return;
-            }
-            
-            const oosBtn = e.target.closest('#sentinel-act-oos');
-            if (oosBtn) {
-                e.preventDefault();
-                e.stopPropagation();
-                if (window.parent.__sentinel_submitBinAction) {
-                    window.parent.__sentinel_submitBinAction('OUT_OF_STOCK');
-                }
-                return;
-            }
-            
-            const resetBtn = e.target.closest('#sentinel-act-reset');
-            if (resetBtn) {
-                e.preventDefault();
-                e.stopPropagation();
-                if (window.parent.__sentinel_submitBinAction) {
-                    window.parent.__sentinel_submitBinAction('RESET');
-                }
-                return;
-            }
-        });
-        
-        parentDoc.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                if (window.parent.__sentinel_closeModal) window.parent.__sentinel_closeModal();
-            }
-        });
-    }
-})();
-</script>
-""".replace("__SUPABASE_URL__", sb_url).replace("__SUPABASE_KEY__", sb_key)
-
-st.components.v1.html(js_controller, height=0)
 
 with tab2:
     if df is not None:
@@ -840,6 +589,40 @@ with tab2:
             action_df = action_df[action_df['Type'] == vel_filter]
             
         action_df = action_df.sort_values(by='Health_Pct', ascending=True)
+
+        if not action_df.empty:
+            with st.expander("⚡ Quick Bin Actions (Restock / Out of Stock / Reset)", expanded=True):
+                col_sel, col_act1, col_act2, col_act3 = st.columns([3, 1, 1, 1])
+                with col_sel:
+                    action_items = action_df[['Shelf', 'Bin', 'Medication', 'Current_Stock', 'Target_Level', 'Health_Pct']].to_dict('records')
+                    item_labels = [f"{r['Shelf']} · {r['Bin']} — {r['Medication']} ({int(r['Current_Stock'])}/{int(r['Target_Level'])})" for r in action_items]
+                    selected_idx = st.selectbox("Select bin needing attention:", range(len(item_labels)), format_func=lambda idx: item_labels[idx], label_visibility="collapsed")
+                
+                selected_item = action_items[selected_idx]
+                with col_act1:
+                    if st.button("Restock", type="primary", use_container_width=True, key="quick_tab2_restock"):
+                        try:
+                            log_bin_action("iPTL", selected_item['Medication'], f"{selected_item['Shelf']}_{selected_item['Bin']}", float(selected_item['Health_Pct']), "RESTOCKED")
+                            st.toast(f"Restocked {selected_item['Medication']}!")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Failed to record restock: {e}")
+                with col_act2:
+                    if st.button("Out of Stock", use_container_width=True, key="quick_tab2_oos"):
+                        try:
+                            log_bin_action("iPTL", selected_item['Medication'], f"{selected_item['Shelf']}_{selected_item['Bin']}", float(selected_item['Health_Pct']), "OUT_OF_STOCK")
+                            st.toast(f"Marked {selected_item['Medication']} Out of Stock!")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Failed to record out of stock: {e}")
+                with col_act3:
+                    if st.button("Reset", use_container_width=True, key="quick_tab2_reset"):
+                        try:
+                            remove_bin_action("iPTL", selected_item['Medication'], f"{selected_item['Shelf']}_{selected_item['Bin']}", float(selected_item['Health_Pct']))
+                            st.toast(f"Reset {selected_item['Medication']}!")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Failed to reset bin: {e}")
             
         # Display the formatted dataframe
         display_df = action_df[['Shelf', 'Bin', 'Medication', 'Current_Stock', 'Target_Level', 'Type', 'Health_Pct']]
