@@ -6,36 +6,21 @@ from utils.db import save_inventory_snapshot, fetch_latest_inventory, log_bin_ac
 st.set_page_config(layout="wide", page_title="SENTINEL")
 
 # --- PROCESS BIN ACTION (Restock, Out of Stock, Reset) ---
-def process_action_payload(payload_str):
-    if not payload_str:
-        return False
-    try:
-        parts = payload_str.split(':::')
-        if len(parts) == 4:
-            act_type, b_id, m_name, h_pct = parts
-            h_pct_val = float(h_pct) if h_pct else 0.0
-            if act_type == "RESET":
-                remove_bin_action("iPTL", m_name, b_id, h_pct_val)
-            else:
-                log_bin_action("iPTL", m_name, b_id, h_pct_val, act_type)
-            return True
-    except Exception as e:
-        st.error(f"Failed to record action: {e}")
-    return False
-
-# Hidden action bridge widgets (WebSocket communication without page reload)
-action_payload = st.text_input("bin_action_payload", key="bin_action_payload", label_visibility="collapsed")
-action_submitted = st.button("bin_action_submit", key="bin_action_submit")
-
-# Check query params (from URL or fallback)
-qp_payload = st.query_params.pop("bin_act", None)
-
-target_payload = action_payload if (action_submitted and action_payload) else qp_payload
-
-if target_payload:
-    process_action_payload(target_payload)
+if "bin_act" in st.query_params:
+    action_payload = st.query_params.pop("bin_act")
+    if action_payload:
+        try:
+            parts = action_payload.split(':::')
+            if len(parts) == 4:
+                act_type, b_id, m_name, h_pct = parts
+                h_pct_val = float(h_pct) if h_pct else 0.0
+                if act_type == "RESET":
+                    remove_bin_action("iPTL", m_name, b_id, h_pct_val)
+                else:
+                    log_bin_action("iPTL", m_name, b_id, h_pct_val, act_type)
+        except Exception as e:
+            st.error(f"Failed to record action: {e}")
     st.query_params.clear()
-    st.rerun()
 
 if 'iptl_data' not in st.session_state and not st.session_state.get('force_upload', False):
     with st.spinner("Fetching latest inventory from database..."):
@@ -150,22 +135,6 @@ CSS_STRING = """
     div[data-testid="stPopover"] > button:hover, div.stButton > button:hover {
         border-color: #097C87;
         color: #097C87;
-    }
-
-    /* Visually hide action trigger bridge offscreen without removing from render tree */
-    .st-key-bin_action_payload,
-    .st-key-bin_action_submit,
-    div[data-testid="stElementContainer"]:has(.st-key-bin_action_payload),
-    div[data-testid="stElementContainer"]:has(.st-key-bin_action_submit) {
-        position: fixed !important;
-        bottom: 0 !important;
-        right: 0 !important;
-        width: 1px !important;
-        height: 1px !important;
-        opacity: 0.001 !important;
-        pointer-events: auto !important;
-        overflow: hidden !important;
-        z-index: -9999 !important;
     }
 
     /* Sentinel DOM Modal Backdrop & Dialog */
@@ -659,10 +628,15 @@ with tab1:
                     
                     st.markdown(html_grid, unsafe_allow_html=True)
 
-# Client Controller Script (Handles instant client-side modal & action dispatch)
+# Client Controller Script (Handles instant client-side modal & direct Supabase action persistence)
+sb_url = st.secrets.get("supabase", {}).get("url", "")
+sb_key = st.secrets.get("supabase", {}).get("key", "")
+
 js_controller = """
 <script>
 (function() {
+    const SUPABASE_URL = "__SUPABASE_URL__";
+    const SUPABASE_KEY = "__SUPABASE_KEY__";
     const parentDoc = window.parent.document;
     
     function openModal(data, el) {
@@ -689,6 +663,18 @@ js_controller = """
         if (backdrop) backdrop.style.display = 'none';
     }
     
+    function getSingaporeISO() {
+        const d = new Date();
+        const sgTime = new Date(d.getTime() + (8 * 60 + d.getTimezoneOffset()) * 60000);
+        const pad = n => String(n).padStart(2, '0');
+        return sgTime.getFullYear() + '-' +
+               pad(sgTime.getMonth() + 1) + '-' +
+               pad(sgTime.getDate()) + 'T' +
+               pad(sgTime.getHours()) + ':' +
+               pad(sgTime.getMinutes()) + ':' +
+               pad(sgTime.getSeconds()) + '+08:00';
+    }
+    
     function submitBinAction(actionType) {
         const activeBin = window.parent.__sentinel_active_bin;
         if (!activeBin) return;
@@ -713,71 +699,39 @@ js_controller = """
         // Close modal dialog immediately
         closeModal();
         
-        const payload = `${actionType}:::${activeBin.shelf}_${activeBin.bin}:::${activeBin.med}:::${activeBin.rawPct}`;
+        // 2. Direct persistence to Supabase REST API (ZERO full browser reload, works on cloud & localhost)
+        const fetchFn = (window.parent && window.parent.fetch) ? window.parent.fetch.bind(window.parent) : window.fetch;
         
-        const parentDoc = window.parent.document;
-        const input = parentDoc.querySelector('.st-key-bin_action_payload input') 
-                   || parentDoc.querySelector('input[aria-label="bin_action_payload"]');
-        const submitBtn = parentDoc.querySelector('.st-key-bin_action_submit button')
-                       || parentDoc.querySelector('button[aria-label="bin_action_submit"]')
-                       || Array.from(parentDoc.querySelectorAll('button')).find(b => b.innerText.trim() === 'bin_action_submit');
-                   
-        if (input && submitBtn) {
-            // Set input value using React tracker bypass
-            try {
-                const tracker = input._valueTracker;
-                if (tracker) tracker.setValue('');
-            } catch (e) {}
-            
-            try {
-                const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
-                nativeSetter.call(input, payload);
-            } catch (e) {
-                input.value = payload;
-            }
-            
-            input.dispatchEvent(new Event('input', { bubbles: true }));
-            input.dispatchEvent(new Event('change', { bubbles: true }));
-            
-            // Also invoke React props.onChange if available
-            try {
-                const reactPropsKey = Object.keys(input).find(k => k.startsWith('__reactProps$'));
-                if (reactPropsKey && input[reactPropsKey] && typeof input[reactPropsKey].onChange === 'function') {
-                    input[reactPropsKey].onChange({ target: { value: payload } });
+        const payload = {
+            created_at: getSingaporeISO(),
+            system_type: "iPTL",
+            medication_name: activeBin.med,
+            shelf_bin_id: `${activeBin.shelf}_${activeBin.bin}`,
+            health_at_time_of_restock: parseFloat(activeBin.rawPct || 0),
+            action_type: actionType
+        };
+        
+        if (SUPABASE_URL && SUPABASE_KEY) {
+            fetchFn(`${SUPABASE_URL}/rest/v1/iptl_restock_actions`, {
+                method: "POST",
+                headers: {
+                    "apikey": SUPABASE_KEY,
+                    "Authorization": "Bearer " + SUPABASE_KEY,
+                    "Content-Type": "application/json",
+                    "Prefer": "return=minimal"
+                },
+                body: JSON.stringify(payload)
+            }).then(function(res) {
+                if (res.ok) {
+                    console.log("SENTINEL: Restock recorded in Supabase successfully (" + actionType + ")");
+                } else {
+                    console.warn("SENTINEL: Supabase returned " + res.status + ", falling back to query param");
+                    window.parent.location.search = `?bin_act=${encodeURIComponent(actionType + ':::' + activeBin.shelf + '_' + activeBin.bin + ':::' + activeBin.med + ':::' + activeBin.rawPct)}`;
                 }
-            } catch (e) {}
-            
-            // Trigger direct fiber widgetMgr if present (for modern Streamlit versions)
-            try {
-                const fiberKey = Object.keys(input).find(k => k.startsWith('__reactFiber$'));
-                if (fiberKey) {
-                    let curr = input[fiberKey];
-                    while (curr) {
-                        if (curr.memoizedProps && curr.memoizedProps.widgetMgr && curr.memoizedProps.element) {
-                            curr.memoizedProps.widgetMgr.setStringValue(curr.memoizedProps.element, payload, { fromUi: true });
-                            break;
-                        }
-                        curr = curr.return;
-                    }
-                }
-            } catch (e) {}
-            
-            // Blur input to ensure widget commit
-            input.dispatchEvent(new FocusEvent('blur', { bubbles: true }));
-            try {
-                const reactPropsKey = Object.keys(input).find(k => k.startsWith('__reactProps$'));
-                if (reactPropsKey && input[reactPropsKey] && typeof input[reactPropsKey].onBlur === 'function') {
-                    input[reactPropsKey].onBlur();
-                }
-            } catch (e) {}
-            
-            // Click the native Streamlit button after a brief tick to trigger WebSocket rerun
-            setTimeout(() => {
-                submitBtn.click();
-            }, 60);
-        } else {
-            // Absolute last-resort fallback if bridge input is not in DOM
-            window.parent.location.search = `?bin_act=${encodeURIComponent(payload)}`;
+            }).catch(function(err) {
+                console.warn("SENTINEL: Fetch failed, using query fallback:", err);
+                window.parent.location.search = `?bin_act=${encodeURIComponent(actionType + ':::' + activeBin.shelf + '_' + activeBin.bin + ':::' + activeBin.med + ':::' + activeBin.rawPct)}`;
+            });
         }
     }
     
@@ -869,7 +823,7 @@ js_controller = """
     }
 })();
 </script>
-"""
+""".replace("__SUPABASE_URL__", sb_url).replace("__SUPABASE_KEY__", sb_key)
 
 st.components.v1.html(js_controller, height=0)
 
