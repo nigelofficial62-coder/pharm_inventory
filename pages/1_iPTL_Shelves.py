@@ -6,41 +6,37 @@ from utils.db import save_inventory_snapshot, fetch_latest_inventory, log_bin_ac
 st.set_page_config(layout="wide", page_title="SENTINEL")
 
 # --- PROCESS BIN ACTION (Restock, Out of Stock, Reset) ---
-def handle_bin_action():
-    payload = st.session_state.get("bin_action_payload", "")
-    if payload:
-        try:
-            parts = payload.split(':::')
-            if len(parts) == 4:
-                act_type, b_id, m_name, h_pct = parts
-                h_pct_val = float(h_pct) if h_pct else 0.0
-                if act_type == "RESET":
-                    remove_bin_action("iPTL", m_name, b_id, h_pct_val)
-                else:
-                    log_bin_action("iPTL", m_name, b_id, h_pct_val, act_type)
-        except Exception as e:
-            st.error(f"Failed to record action: {e}")
-        st.session_state["bin_action_payload"] = ""
+def process_action_payload(payload_str):
+    if not payload_str:
+        return False
+    try:
+        parts = payload_str.split(':::')
+        if len(parts) == 4:
+            act_type, b_id, m_name, h_pct = parts
+            h_pct_val = float(h_pct) if h_pct else 0.0
+            if act_type == "RESET":
+                remove_bin_action("iPTL", m_name, b_id, h_pct_val)
+            else:
+                log_bin_action("iPTL", m_name, b_id, h_pct_val, act_type)
+            return True
+    except Exception as e:
+        st.error(f"Failed to record action: {e}")
+    return False
 
-# Handle query params fallback if present (e.g. direct URL navigation)
-if "bin_act" in st.query_params:
-    action_payload = st.query_params.pop("bin_act")
-    if action_payload:
-        try:
-            parts = action_payload.split(':::')
-            if len(parts) == 4:
-                act_type, b_id, m_name, h_pct = parts
-                h_pct_val = float(h_pct) if h_pct else 0.0
-                if act_type == "RESET":
-                    remove_bin_action("iPTL", m_name, b_id, h_pct_val)
-                else:
-                    log_bin_action("iPTL", m_name, b_id, h_pct_val, act_type)
-        except Exception as e:
-            st.error(f"Failed to record action: {e}")
+# Hidden action bridge widgets (WebSocket communication without page reload)
+action_payload = st.text_input("bin_action_payload", key="bin_action_payload", label_visibility="collapsed")
+action_submitted = st.button("bin_action_submit", key="bin_action_submit")
+
+# Check query params (from URL or fallback)
+qp_payload = st.query_params.pop("bin_act", None)
+
+target_payload = action_payload if (action_submitted and action_payload) else qp_payload
+
+if target_payload:
+    process_action_payload(target_payload)
+    st.session_state["bin_action_payload"] = ""
     st.query_params.clear()
-
-# Hidden action bridge widget (communicates via Streamlit WebSocket without page reload)
-st.text_input("bin_action_payload", key="bin_action_payload", label_visibility="collapsed", on_change=handle_bin_action)
+    st.rerun()
 
 if 'iptl_data' not in st.session_state and not st.session_state.get('force_upload', False):
     with st.spinner("Fetching latest inventory from database..."):
@@ -159,14 +155,16 @@ CSS_STRING = """
 
     /* Visually hide action trigger bridge offscreen without removing from render tree */
     .st-key-bin_action_payload,
-    div[data-testid="stElementContainer"]:has(.st-key-bin_action_payload) {
+    .st-key-bin_action_submit,
+    div[data-testid="stElementContainer"]:has(.st-key-bin_action_payload),
+    div[data-testid="stElementContainer"]:has(.st-key-bin_action_submit) {
         position: fixed !important;
         bottom: 0 !important;
         right: 0 !important;
         width: 1px !important;
         height: 1px !important;
         opacity: 0.001 !important;
-        pointer-events: none !important;
+        pointer-events: auto !important;
         overflow: hidden !important;
         z-index: -9999 !important;
     }
@@ -718,13 +716,39 @@ js_controller = """
         
         const payload = `${actionType}:::${activeBin.shelf}_${activeBin.bin}:::${activeBin.med}:::${activeBin.rawPct}`;
         
+        const parentDoc = window.parent.document;
         const input = parentDoc.querySelector('.st-key-bin_action_payload input') 
                    || parentDoc.querySelector('input[aria-label="bin_action_payload"]');
+        const submitBtn = parentDoc.querySelector('.st-key-bin_action_submit button')
+                       || parentDoc.querySelector('button[aria-label="bin_action_submit"]')
+                       || Array.from(parentDoc.querySelectorAll('button')).find(b => b.innerText.trim() === 'bin_action_submit');
                    
-        if (input) {
-            let sent = false;
+        if (input && submitBtn) {
+            // Set input value using React tracker bypass
+            try {
+                const tracker = input._valueTracker;
+                if (tracker) tracker.setValue('');
+            } catch (e) {}
             
-            // Priority 1: Direct Streamlit React Fiber widget manager state sync
+            try {
+                const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+                nativeSetter.call(input, payload);
+            } catch (e) {
+                input.value = payload;
+            }
+            
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+            
+            // Also invoke React props.onChange if available
+            try {
+                const reactPropsKey = Object.keys(input).find(k => k.startsWith('__reactProps$'));
+                if (reactPropsKey && input[reactPropsKey] && typeof input[reactPropsKey].onChange === 'function') {
+                    input[reactPropsKey].onChange({ target: { value: payload } });
+                }
+            } catch (e) {}
+            
+            // Trigger direct fiber widgetMgr if present (for modern Streamlit versions)
             try {
                 const fiberKey = Object.keys(input).find(k => k.startsWith('__reactFiber$'));
                 if (fiberKey) {
@@ -732,53 +756,26 @@ js_controller = """
                     while (curr) {
                         if (curr.memoizedProps && curr.memoizedProps.widgetMgr && curr.memoizedProps.element) {
                             curr.memoizedProps.widgetMgr.setStringValue(curr.memoizedProps.element, payload, { fromUi: true });
-                            sent = true;
                             break;
                         }
                         curr = curr.return;
                     }
                 }
-            } catch (err) {
-                console.warn("Sentinel: fiber dispatch warning:", err);
-            }
+            } catch (e) {}
             
-            // Priority 2: React Synthetic Event handlers (onChange + onKeyPress Enter + onBlur)
-            if (!sent) {
-                try {
-                    const reactPropsKey = Object.keys(input).find(k => k.startsWith('__reactProps$'));
-                    if (reactPropsKey && input[reactPropsKey]) {
-                        const props = input[reactPropsKey];
-                        if (typeof props.onChange === 'function') {
-                            props.onChange({ target: { value: payload } });
-                        }
-                        if (typeof props.onKeyPress === 'function') {
-                            props.onKeyPress({ key: 'Enter', keyCode: 13, which: 13, preventDefault: () => {} });
-                        }
-                        if (typeof props.onBlur === 'function') {
-                            props.onBlur();
-                        }
-                        sent = true;
-                    }
-                } catch (err) {
-                    console.warn("Sentinel: react props dispatch warning:", err);
+            // Blur input to ensure widget commit
+            input.dispatchEvent(new FocusEvent('blur', { bubbles: true }));
+            try {
+                const reactPropsKey = Object.keys(input).find(k => k.startsWith('__reactProps$'));
+                if (reactPropsKey && input[reactPropsKey] && typeof input[reactPropsKey].onBlur === 'function') {
+                    input[reactPropsKey].onBlur();
                 }
-            }
+            } catch (e) {}
             
-            // Priority 3: Native DOM events with Enter keypress
-            if (!sent) {
-                try {
-                    const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
-                    nativeSetter.call(input, payload);
-                    input.dispatchEvent(new Event('input', { bubbles: true }));
-                    input.dispatchEvent(new Event('change', { bubbles: true }));
-                    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', keyCode: 13, bubbles: true }));
-                    input.dispatchEvent(new KeyboardEvent('keypress', { key: 'Enter', keyCode: 13, bubbles: true }));
-                    input.dispatchEvent(new FocusEvent('blur', { bubbles: true }));
-                    sent = true;
-                } catch (err) {
-                    console.warn("Sentinel: native event dispatch warning:", err);
-                }
-            }
+            // Click the native Streamlit button after a brief tick to trigger WebSocket rerun
+            setTimeout(() => {
+                submitBtn.click();
+            }, 60);
         } else {
             // Absolute last-resort fallback if bridge input is not in DOM
             window.parent.location.search = `?bin_act=${encodeURIComponent(payload)}`;
