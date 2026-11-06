@@ -632,100 +632,98 @@ with tab1:
 js_controller = """
 <script>
 (function() {
-    const parentDoc = window.parent.document;
-    if (!parentDoc) return;
+    var doc = (window.parent && window.parent.document) ? window.parent.document : document;
+    if (!doc) return;
     
-    function openModal(data) {
-        const backdrop = parentDoc.getElementById('sentinel-bin-modal-backdrop');
-        if (!backdrop) return;
-        
-        const badge = parentDoc.getElementById('sentinel-modal-badge');
-        const med = parentDoc.getElementById('sentinel-modal-med');
-        const stock = parentDoc.getElementById('sentinel-modal-stock');
-        
-        if (badge) badge.innerText = `${data.shelf} · ${data.bin}`;
-        if (med) med.innerText = data.med;
-        if (stock) stock.innerHTML = `Current Stock: <b>${data.stock}</b> / ${data.target} (${data.pct}%)`;
-        
-        // Populate action links with exact query parameters for native top-level navigation
-        const restockLink = parentDoc.getElementById('sentinel-act-restock');
-        const oosLink = parentDoc.getElementById('sentinel-act-oos');
-        const resetLink = parentDoc.getElementById('sentinel-act-reset');
-        
-        const payloadRestock = `RESTOCKED:::${data.shelf}_${data.bin}:::${data.med}:::${data.rawPct}`;
-        const payloadOos = `OUT_OF_STOCK:::${data.shelf}_${data.bin}:::${data.med}:::${data.rawPct}`;
-        const payloadReset = `RESET:::${data.shelf}_${data.bin}:::${data.med}:::${data.rawPct}`;
-        
-        if (restockLink) restockLink.href = `?bin_act=${encodeURIComponent(payloadRestock)}`;
-        if (oosLink) oosLink.href = `?bin_act=${encodeURIComponent(payloadOos)}`;
-        if (resetLink) resetLink.href = `?bin_act=${encodeURIComponent(payloadReset)}`;
-        
-        backdrop.style.display = 'flex';
+    // 1. Cleanly unbind any previous handlers so closures from destroyed iframe contexts are discarded
+    if (doc.__sentinel_click_listener) {
+        doc.removeEventListener('click', doc.__sentinel_click_listener, true);
+    }
+    if (doc.__sentinel_key_listener) {
+        doc.removeEventListener('keydown', doc.__sentinel_key_listener, true);
     }
     
-    function closeModal() {
-        const backdrop = parentDoc.getElementById('sentinel-bin-modal-backdrop');
-        if (backdrop) backdrop.style.display = 'none';
-    }
-    
-    window.parent.__sentinel_openModal = openModal;
-    window.parent.__sentinel_closeModal = closeModal;
-    
-    if (!parentDoc.__sentinel_listener_attached) {
-        parentDoc.__sentinel_listener_attached = true;
-        
-        parentDoc.addEventListener('click', function(e) {
-            // 1. Bin box clicked
-            const binBox = e.target.closest('.bin-box');
-            if (binBox) {
-                if (binBox.classList.contains('status-grey') || binBox.classList.contains('status-overflow')) {
-                    return;
-                }
-                const shelf = binBox.getAttribute('data-shelf');
-                const bin = binBox.getAttribute('data-bin');
-                if (shelf && bin) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (window.parent.__sentinel_openModal) {
-                        window.parent.__sentinel_openModal({
-                            shelf: shelf,
-                            bin: bin,
-                            med: binBox.getAttribute('data-med') || '',
-                            stock: binBox.getAttribute('data-stock') || '0',
-                            target: binBox.getAttribute('data-target') || '0',
-                            pct: binBox.getAttribute('data-pct') || '0',
-                            rawPct: binBox.getAttribute('data-raw-pct') || '0'
-                        });
-                    }
-                    return;
-                }
-            }
-            
-            // 2. Close button clicked
-            if (e.target.closest('#sentinel-modal-close')) {
-                e.preventDefault();
-                if (window.parent.__sentinel_closeModal) window.parent.__sentinel_closeModal();
+    // 2. Self-contained handler: directly operates on doc without relying on iframe window pointers
+    doc.__sentinel_click_listener = function(e) {
+        // Handle Bin Box Click
+        var binBox = e.target.closest('.bin-box');
+        if (binBox) {
+            if (binBox.classList.contains('status-grey') || binBox.classList.contains('status-overflow')) {
                 return;
             }
-            
-            // 3. Clicked on dark backdrop outside dialog
-            if (e.target.id === 'sentinel-bin-modal-backdrop') {
+            var shelf = binBox.getAttribute('data-shelf');
+            var bin = binBox.getAttribute('data-bin');
+            if (shelf && bin) {
                 e.preventDefault();
-                if (window.parent.__sentinel_closeModal) window.parent.__sentinel_closeModal();
+                e.stopPropagation();
+                
+                var backdrop = doc.getElementById('sentinel-bin-modal-backdrop');
+                if (!backdrop) return;
+                
+                var badge = doc.getElementById('sentinel-modal-badge');
+                var med = doc.getElementById('sentinel-modal-med');
+                var stock = doc.getElementById('sentinel-modal-stock');
+                
+                var medName = binBox.getAttribute('data-med') || '';
+                var currentStock = binBox.getAttribute('data-stock') || '0';
+                var targetLevel = binBox.getAttribute('data-target') || '0';
+                var pct = binBox.getAttribute('data-pct') || '0';
+                var rawPct = binBox.getAttribute('data-raw-pct') || '0';
+                
+                if (badge) badge.innerText = shelf + ' · ' + bin;
+                if (med) med.innerText = medName;
+                if (stock) stock.innerHTML = 'Current Stock: <b>' + currentStock + '</b> / ' + targetLevel + ' (' + pct + '%)';
+                
+                var restockLink = doc.getElementById('sentinel-act-restock');
+                var oosLink = doc.getElementById('sentinel-act-oos');
+                var resetLink = doc.getElementById('sentinel-act-reset');
+                
+                var payloadRestock = 'RESTOCKED:::' + shelf + '_' + bin + ':::' + medName + ':::' + rawPct;
+                var payloadOos = 'OUT_OF_STOCK:::' + shelf + '_' + bin + ':::' + medName + ':::' + rawPct;
+                var payloadReset = 'RESET:::' + shelf + '_' + bin + ':::' + medName + ':::' + rawPct;
+                
+                if (restockLink) restockLink.href = '?bin_act=' + encodeURIComponent(payloadRestock);
+                if (oosLink) oosLink.href = '?bin_act=' + encodeURIComponent(payloadOos);
+                if (resetLink) resetLink.href = '?bin_act=' + encodeURIComponent(payloadReset);
+                
+                backdrop.style.display = 'flex';
                 return;
             }
-        });
+        }
         
-        parentDoc.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                if (window.parent.__sentinel_closeModal) window.parent.__sentinel_closeModal();
-            }
-        });
-    }
+        // Handle Close Button Click
+        if (e.target.closest('#sentinel-modal-close')) {
+            e.preventDefault();
+            var backdrop = doc.getElementById('sentinel-bin-modal-backdrop');
+            if (backdrop) backdrop.style.display = 'none';
+            return;
+        }
+        
+        // Handle Backdrop Outside Click
+        if (e.target.id === 'sentinel-bin-modal-backdrop') {
+            e.preventDefault();
+            e.target.style.display = 'none';
+            return;
+        }
+    };
+    
+    doc.__sentinel_key_listener = function(e) {
+        if (e.key === 'Escape') {
+            var backdrop = doc.getElementById('sentinel-bin-modal-backdrop');
+            if (backdrop) backdrop.style.display = 'none';
+        }
+    };
+    
+    // 3. Attach fresh listeners in the capture phase to ensure reliable event interception across all reruns
+    doc.addEventListener('click', doc.__sentinel_click_listener, true);
+    doc.addEventListener('keydown', doc.__sentinel_key_listener, true);
 })();
 </script>
 """
-st.components.v1.html(js_controller, height=0)
+
+# Dynamic remount token ensures Streamlit always re-evaluates and executes the controller when inventory changes
+render_token = f"{st.session_state.get('iptl_uploaded_name', 'init')}_{st.session_state.get('iptl_inventory_time', '0')}"
+st.components.v1.html(f"{js_controller}<!-- token: {render_token} -->", height=0)
 
 with tab2:
     if df is not None:
